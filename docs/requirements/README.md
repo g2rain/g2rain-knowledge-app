@@ -4,7 +4,8 @@
 
 当前待实施需求：
 
-- [知识库运营页面升级方案](20261015-knowledge-page-upgrade.md)
+- [知识应用菜单、交互与双壳集成方案](20261017-knowledge-interaction-menu-plan.md)：当前实施入口，采用上下文弹窗/抽屉，接入两个壳。
+- [知识库运营页面升级方案（已取代）](20261015-knowledge-page-upgrade.md)：仅供背景追溯。
 
 建议文件名：`YYYYMMDD-short-name.md`。
 

@@ -37,6 +37,7 @@
 ## 需求与决策
 
 - [Requirements 使用说明](requirements/README.md)
+- [知识应用菜单、交互与双壳集成方案](requirements/20261017-knowledge-interaction-menu-plan.md)
 - [项目级 ADR](decisions/README.md)
 - [社区与联系](community.md)
 

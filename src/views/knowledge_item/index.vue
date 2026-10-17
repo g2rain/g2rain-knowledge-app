@@ -1,37 +1,28 @@
-
 <template>
   <div class="knowledge_item-page">
-    <!-- 查询表单 -->
     <el-card class="knowledge_item-page__search" shadow="never">
-      <!-- 基础查询表单（BaseSelectListDto） -->
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
-        <!-- 业务特定查询字段 -->
-        <el-form-item label="机构ID">
-          <el-input v-model="queryForm.organId" placeholder="请输入机构ID" clearable style="width: 200px" />
+        <el-form-item label="名称">
+          <el-input v-model="queryForm.knowledgeName" placeholder="知识名称" clearable style="width: 200px" />
         </el-form-item>
-        <el-form-item label="知识分类ID">
-          <el-input v-model="queryForm.categoryId" placeholder="请输入知识分类ID" clearable style="width: 200px" />
+        <el-form-item label="知识键">
+          <el-input v-model="queryForm.knowledgeKey" placeholder="业务唯一键" clearable style="width: 200px" />
         </el-form-item>
-        <el-form-item label="稳定业务键，如 refund_policy">
-          <el-input v-model="queryForm.knowledgeKey" placeholder="请输入稳定业务键，如 refund_policy" clearable style="width: 200px" />
+        <el-form-item label="分类">
+          <el-select v-model="queryForm.categoryId" placeholder="分类" clearable filterable style="width: 180px">
+            <el-option v-for="c in categoryOptions" :key="c.id" :label="c.categoryName" :value="c.id" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="知识名称">
-          <el-input v-model="queryForm.knowledgeName" placeholder="请输入知识名称" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="知识类型">
-          <el-input v-model="queryForm.knowledgeType" placeholder="请输入知识类型" clearable style="width: 200px" />
+        <el-form-item label="类型">
+          <el-select v-model="queryForm.knowledgeType" placeholder="类型" clearable style="width: 140px">
+            <el-option v-for="opt in typeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-input v-model="queryForm.status" placeholder="请输入状态" clearable style="width: 200px" />
+          <el-select v-model="queryForm.status" placeholder="启停" clearable style="width: 140px">
+            <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="知识说明">
-          <el-input v-model="queryForm.description" placeholder="请输入知识说明" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="创建用户ID">
-          <el-input v-model="queryForm.createUserId" placeholder="请输入创建用户ID" clearable style="width: 200px" />
-        </el-form-item>
-
-        <!-- 操作按钮 -->
         <template #actions>
           <el-form-item>
             <el-button type="primary" @click="handleSearch">{{ $t('G2_BTN_QUERY', '查询') }}</el-button>
@@ -41,31 +32,41 @@
       </QueryForm>
     </el-card>
 
-    <!-- 标题和操作按钮 -->
     <div class="knowledge_item-page__header">
       <div class="knowledge_item-page__title-group">
-        <h2>管理知识主题表数据</h2>
+        <h2>知识内容</h2>
       </div>
-      <el-button type="primary" v-permission="'knowledge_item:add'" @click="handleCreate">新增知识主题表</el-button>
+      <el-button type="primary" v-permission="'knowledge_item:add'" @click="handleCreate">新建内容</el-button>
     </div>
 
     <SortableTable :data="tableData" border stripe style="width: 100%" :enable-multi-sort="true" @sort-change="handleSortChange">
-      <el-table-column prop="id" :label="$t('G2_FIELD_ID', 'ID')" width="120" />
-      <el-table-column prop="organId" label="机构ID" width="140" />
-      <el-table-column prop="categoryId" label="知识分类ID" width="140" />
-      <el-table-column prop="knowledgeKey" label="稳定业务键，如 refund_policy" width="180" />
-      <el-table-column prop="knowledgeName" label="知识名称" width="180" />
-      <el-table-column prop="knowledgeType" label="知识类型" width="180" />
-      <el-table-column prop="status" label="状态" width="180" />
-      <el-table-column prop="description" label="知识说明" width="180" />
-      <el-table-column prop="createUserId" label="创建用户ID" width="140" />
-      <TableColumn prop="createTime" :label="$t('G2_FIELD_CREATE_TIME', '创建时间')" width="180" sortable="custom" />
+      <el-table-column prop="knowledgeName" label="名称" min-width="180">
+        <template #default="{ row }">
+          <el-button type="primary" link @click="openVersions(row)">{{ row.knowledgeName }}</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column prop="categoryId" label="分类" width="140">
+        <template #default="{ row }">{{ categoryName(row.categoryId) }}</template>
+      </el-table-column>
+      <el-table-column prop="knowledgeType" label="类型" width="100">
+        <template #default="{ row }">{{ typeLabel(row.knowledgeType) }}</template>
+      </el-table-column>
+      <el-table-column label="当前生效版本" min-width="140">
+        <template #default="{ row }">{{ activeRevisionText(row.id) }}</template>
+      </el-table-column>
+      <el-table-column prop="status" label="状态" width="90">
+        <template #default="{ row }">{{ statusLabel(row.status) }}</template>
+      </el-table-column>
       <TableColumn prop="updateTime" :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')" width="180" sortable="custom" />
       <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" fixed="right" width="280">
         <template #default="{ row }">
-          <el-button type="primary" link size="small" @click="handleView(row)">{{ $t('G2_BTN_DETAIL', '明细') }}</el-button>
-          <el-button type="primary" v-permission="'knowledge_item:edit'" link size="small" @click="handleEdit(row)">{{ $t('G2_BTN_EDIT', '编辑') }}</el-button>
-          <el-button type="danger" v-permission="'knowledge_item:delete'" link size="small" @click="handleDelete(row)">{{ $t('G2_BTN_DELETE', '删除') }}</el-button>
+          <el-button type="primary" link size="small" @click="openVersions(row)">查看版本</el-button>
+          <el-button type="primary" link size="small" v-permission="'knowledge_revision:add'" @click="openVersions(row, true)">
+            新增版本
+          </el-button>
+          <el-button type="primary" v-permission="'knowledge_item:edit'" link size="small" @click="handleEdit(row)">
+            {{ $t('G2_BTN_EDIT', '编辑') }}
+          </el-button>
         </template>
         <template #header>
           <div style="display: flex; align-items: center; gap: 8px;">
@@ -76,7 +77,6 @@
       </el-table-column>
     </SortableTable>
 
-    <!-- 分页组件 -->
     <div class="knowledge_item-page__pagination">
       <el-pagination
         v-model:current-page="pagination.pageNum"
@@ -89,316 +89,263 @@
       />
     </div>
 
-    <!-- 新增 / 编辑弹窗 -->
-    <el-dialog v-model="editDialogVisible" :title="isEdit ? '编辑知识主题表' : '新增知识主题表'" width="520px">
-      <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="100px">
-        <el-form-item label="机构ID" prop="organId">
-          <el-input v-model="editForm.organId" placeholder="请输入机构ID" />
+    <el-drawer
+      v-model="editDrawerVisible"
+      :title="isEdit ? '编辑知识内容' : '新建知识内容'"
+      :size="OVERLAY_SIZE.drawer"
+      destroy-on-close
+      :close-on-click-modal="false"
+    >
+      <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="96px">
+        <el-form-item label="名称" prop="knowledgeName">
+          <el-input v-model="editForm.knowledgeName" placeholder="知识名称" />
         </el-form-item>
-        <el-form-item label="知识分类ID" prop="categoryId">
-          <el-input v-model="editForm.categoryId" placeholder="请输入知识分类ID" />
+        <el-form-item label="知识键" prop="knowledgeKey">
+          <el-input v-model="editForm.knowledgeKey" placeholder="业务侧稳定标识" :disabled="isEdit" />
+          <div class="field-tip">用于对接检索与发布，创建后建议不要轻易修改</div>
         </el-form-item>
-        <el-form-item label="稳定业务键，如 refund_policy" prop="knowledgeKey">
-          <el-input v-model="editForm.knowledgeKey" placeholder="请输入稳定业务键，如 refund_policy" />
+        <el-form-item label="分类" prop="categoryId">
+          <el-select v-model="editForm.categoryId" placeholder="选择分类" filterable style="width: 100%">
+            <el-option v-for="c in categoryOptions" :key="c.id" :label="c.categoryName" :value="c.id" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="知识名称" prop="knowledgeName">
-          <el-input v-model="editForm.knowledgeName" placeholder="请输入知识名称" />
-        </el-form-item>
-        <el-form-item label="知识类型" prop="knowledgeType">
-          <el-input v-model="editForm.knowledgeType" placeholder="请输入知识类型" />
+        <el-form-item label="类型" prop="knowledgeType">
+          <el-select v-model="editForm.knowledgeType" placeholder="类型" style="width: 100%" :disabled="isEdit">
+            <el-option v-for="opt in typeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="状态" prop="status">
-          <el-input v-model="editForm.status" placeholder="请输入状态" />
+          <el-select v-model="editForm.status" placeholder="启停状态" style="width: 100%">
+            <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
+          </el-select>
+          <div class="field-tip">停用不等同于下线或撤回线上版本，请按实际业务影响确认</div>
         </el-form-item>
-        <el-form-item label="知识说明" prop="description">
-          <el-input v-model="editForm.description" placeholder="请输入知识说明" />
-        </el-form-item>
-        <el-form-item label="创建用户ID" prop="createUserId">
-          <el-input v-model="editForm.createUserId" placeholder="请输入创建用户ID" />
+        <el-form-item label="说明" prop="description">
+          <el-input v-model="editForm.description" type="textarea" :rows="4" placeholder="说明" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="editDialogVisible = false">{{ $t('G2_BTN_CANCEL', '取消') }}</el-button>
-          <el-button type="primary" @click="submitEdit">{{ $t('G2_BTN_SAVE', '保存') }}</el-button>
-        </span>
+        <el-button @click="editDrawerVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitEdit">保存</el-button>
       </template>
-    </el-dialog>
+    </el-drawer>
 
-    <!-- 明细弹窗 -->
-    <el-dialog v-model="detailDialogVisible" title="知识主题表明细" width="520px">
-      <el-descriptions :column="1" border>
-        <el-descriptions-item :label="$t('G2_FIELD_ID', 'ID')">{{ currentRow?.id }}</el-descriptions-item>
-        <el-descriptions-item label="机构ID">{{ currentRow?.organId }}</el-descriptions-item>
-        <el-descriptions-item label="知识分类ID">{{ currentRow?.categoryId }}</el-descriptions-item>
-        <el-descriptions-item label="稳定业务键，如 refund_policy">{{ currentRow?.knowledgeKey }}</el-descriptions-item>
-        <el-descriptions-item label="知识名称">{{ currentRow?.knowledgeName }}</el-descriptions-item>
-        <el-descriptions-item label="知识类型">{{ currentRow?.knowledgeType }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ currentRow?.status }}</el-descriptions-item>
-        <el-descriptions-item label="知识说明">{{ currentRow?.description }}</el-descriptions-item>
-        <el-descriptions-item label="创建用户ID">{{ currentRow?.createUserId }}</el-descriptions-item>
-        <el-descriptions-item :label="$t('G2_FIELD_CREATE_TIME', '创建时间')">{{ currentRow?.createTime }}</el-descriptions-item>
-        <el-descriptions-item :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')">{{ currentRow?.updateTime }}</el-descriptions-item>
-      </el-descriptions>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button type="primary" @click="detailDialogVisible = false">{{ $t('G2_BTN_CLOSE', '关闭') }}</el-button>
-        </span>
-      </template>
-    </el-dialog>
+    <RevisionManageDrawer
+      v-model="versionDrawerVisible"
+      :knowledge-id="versionKnowledgeId"
+      :auto-create="openCreateAfterVersion"
+      @changed="loadData"
+      @update:model-value="(v) => { if (!v) openCreateAfterVersion = false }"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
-import { ElMessageBox, ElMessage } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import { t } from '@platform/i18n';
 import { KnowledgeItemApi } from './api';
 import type { KnowledgeItem, KnowledgeItemPayload, KnowledgeItemQuery } from './type';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
-
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
 import { showErrorMessage } from '@/components';
+import { compactQuery } from '@shared/knowledge/entity';
+import { OVERLAY_SIZE } from '@shared/knowledge/overlay';
+import { ITEM_STATUS_OPTIONS, KNOWLEDGE_TYPE_OPTIONS } from '@/views/knowledge_revision/status';
+import { KnowledgeCategoryApi } from '@/views/knowledge_category/api';
+import type { KnowledgeCategory } from '@/views/knowledge_category/type';
+import { KnowledgeReleaseApi } from '@/views/knowledge_release/api';
+import { KnowledgeRevisionApi } from '@/views/knowledge_revision/api';
+import RevisionManageDrawer from '@/views/knowledge_revision/RevisionManageDrawer.vue';
 
+const statusOptions = ITEM_STATUS_OPTIONS;
+const typeOptions = KNOWLEDGE_TYPE_OPTIONS;
+const statusLabel = (s?: string) => statusOptions.find((o) => o.value === s)?.label || s || '-';
+const typeLabel = (s?: string) => typeOptions.find((o) => o.value === s)?.label || s || '-';
 
-// 组件引用
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
-
-// 基础查询表单（BaseSelectListDto）；用 ref 以匹配 QueryForm defineModel
-const baseQueryForm = ref<BaseSelectListDto>({
-  id: undefined,
-  createTime: undefined,
-  updateTime: undefined,
-  sorts: undefined,
-});
-
-// 业务查询状态
+const baseQueryForm = ref<BaseSelectListDto>({});
 const queryForm = reactive({
-  organId: undefined,
-  categoryId: undefined,
-  knowledgeKey: '',
   knowledgeName: '',
+  knowledgeKey: '',
+  categoryId: undefined as number | undefined,
   knowledgeType: '',
   status: '',
-  description: '',
-  createUserId: undefined,
 });
-
-// 分页相关状态
-const pagination = reactive({
-  pageNum: 1,
-  pageSize: 10,
-  total: 0,
-});
-
-// 定义列表引用
+const pagination = reactive({ pageNum: 1, pageSize: 10, total: 0 });
 const tableData = ref<KnowledgeItem[]>([]);
+const categoryOptions = ref<KnowledgeCategory[]>([]);
+const activeRevisionMap = ref<Record<number, string>>({});
 
-// 加载列表数据
+const categoryName = (id?: number) => categoryOptions.value.find((c) => c.id === id)?.categoryName || '-';
+const activeRevisionText = (knowledgeId: number) => activeRevisionMap.value[knowledgeId] || '-';
+
+const loadCategories = async () => {
+  try {
+    categoryOptions.value = await KnowledgeCategoryApi.list({ status: 'ACTIVE' });
+  } catch {
+    categoryOptions.value = [];
+  }
+};
+
+const loadActiveRevisions = async (items: KnowledgeItem[]) => {
+  const map: Record<number, string> = {};
+  await Promise.all(
+    items.map(async (item) => {
+      try {
+        const releases = await KnowledgeReleaseApi.list({ knowledgeId: item.id });
+        const activeId = releases[0]?.activeRevisionId;
+        if (!activeId) return;
+        const revisions = await KnowledgeRevisionApi.list({ id: activeId });
+        if (revisions[0]) map[item.id] = revisions[0].revisionNo;
+      } catch {
+        /* 忽略单行失败 */
+      }
+    }),
+  );
+  activeRevisionMap.value = map;
+};
+
 const loadData = async () => {
   try {
-    // 合并基础查询 + 业务查询，并过滤空值
-    const query = Object.fromEntries(
-      Object.entries({ ...baseQueryForm.value, ...queryForm })
-        .filter(([_, v]) => (v ?? '') !== '' && [v].flat().length)
-    ) as KnowledgeItemQuery;
-
-    // 请求分页数据
+    const query = compactQuery({ ...baseQueryForm.value, ...queryForm }) as KnowledgeItemQuery;
     const pageData = await KnowledgeItemApi.page({
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize,
       ...query,
     } as PageSelectListDto & KnowledgeItemQuery);
-
-    // 设置响应结果
     tableData.value = pageData.records;
     pagination.total = pageData.total;
+    await loadActiveRevisions(pageData.records);
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : t('G2_MSG_LOAD_FAIL', '加载列表失败');
-    showErrorMessage(msg);
+    showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_LOAD_FAIL', '加载列表失败'));
   }
 };
 
-// 处理排序变化
-const handleSortChange = (params: Record<string, string>) => {
-  // 更新 QueryForm 的 sorts 字段
-  queryFormRef.value?.updateSorts(params);
-};
-
-// 查询
+const handleSortChange = (params: Record<string, string>) => queryFormRef.value?.updateSorts(params);
 const handleSearch = () => {
-  pagination.pageNum = 1; // 重置到第一页
+  pagination.pageNum = 1;
   loadData();
 };
-
-// 重置查询条件
 const handleReset = () => {
-  // 重置基础查询表单
-  baseQueryForm.value.id = undefined;
-  baseQueryForm.value.createTime = undefined;
-  baseQueryForm.value.updateTime = undefined;
-  baseQueryForm.value.sorts = undefined;
-  // 重置业务特定查询表单
-  queryForm.organId = undefined;
-  queryForm.categoryId = undefined;
-  queryForm.knowledgeKey = '';
-  queryForm.knowledgeName = '';
-  queryForm.knowledgeType = '';
-  queryForm.status = '';
-  queryForm.description = '';
-  queryForm.createUserId = undefined;
-
-  pagination.pageNum = 1; // 重置到第一页
+  baseQueryForm.value = {};
+  Object.assign(queryForm, {
+    knowledgeName: '',
+    knowledgeKey: '',
+    categoryId: undefined,
+    knowledgeType: '',
+    status: '',
+  });
+  pagination.pageNum = 1;
   loadData();
 };
-
-// 分页大小变化
 const handleSizeChange = (size: number) => {
   pagination.pageSize = size;
-  pagination.pageNum = 1; // 重置到第一页
+  pagination.pageNum = 1;
   loadData();
 };
-
-// 页码变化
 const handlePageChange = (page: number) => {
   pagination.pageNum = page;
   loadData();
 };
 
-// 当前记录引用
-const currentRow = ref<KnowledgeItem | null>(null);
-// 明细弹窗引用
-const detailDialogVisible = ref(false);
+const versionDrawerVisible = ref(false);
+const versionKnowledgeId = ref<number | null>(null);
+const openCreateAfterVersion = ref(false);
 
-// 查询数据明细
-const handleView = (row: KnowledgeItem) => {
-  currentRow.value = { ...row };
-  detailDialogVisible.value = true;
+const openVersions = (row: KnowledgeItem, create = false) => {
+  versionKnowledgeId.value = row.id;
+  versionDrawerVisible.value = true;
+  openCreateAfterVersion.value = create;
 };
 
-// 删除数据记录
-const handleDelete = (row: KnowledgeItem) => {
-  ElMessageBox.confirm(`确认删除知识主题表「${row.id}」吗？`, t('G2_LBL_TIP', '提示'), {
-    type: 'warning',
-  })
-    .then(async () => {
-      try {
-        await KnowledgeItemApi.remove(row.id);
-        // 如果当前页只有一条数据，删除后应该跳转到上一页
-        if (tableData.value.length === 1 && pagination.pageNum > 1) {
-          pagination.pageNum--;
-        }
-        await loadData();
-        ElMessage.success(t('G2_MSG_DELETE_OK', '删除成功'));
-      } catch (error: unknown) {
-        const msg = error instanceof Error ? error.message : t('G2_MSG_DELETE_FAIL', '删除失败');
-        showErrorMessage(msg);
-      }
-    })
-    .catch(() => {});
-};
-
-// 保存弹窗引用
-const editDialogVisible = ref(false);
-
-// 修改标记状态
+const editDrawerVisible = ref(false);
 const isEdit = ref(false);
-
-// 修改组件引用
 const editFormRef = ref<FormInstance | null>(null);
-
-// 保存表单状态
 const editForm = reactive({
   id: undefined as number | undefined,
-  organId: undefined as number | undefined,
-  categoryId: undefined as number | undefined,
-  knowledgeKey: '',
+  version: undefined as number | undefined,
   knowledgeName: '',
-  knowledgeType: '',
-  status: '',
+  knowledgeKey: '',
+  categoryId: undefined as number | undefined,
+  knowledgeType: 'FILE',
+  status: 'ACTIVE',
   description: '',
-  createUserId: undefined as number | undefined,
 });
-
-// 表单校验规则
 const editRules: FormRules = {
-  organId: [{ required: true, message: '请输入机构标识', trigger: 'blur' }],
-  knowledgeKey: [{ required: true, message: '请输入稳定业务键，如 refund_policy', trigger: 'blur' }],
-  knowledgeName: [{ required: true, message: '请输入知识名称', trigger: 'blur' }],
-  knowledgeType: [{ required: true, message: '请输入知识类型[DOCUMENT:文档, FAQ:问答]', trigger: 'blur' }],
-  status: [{ required: true, message: '请输入状态[ACTIVE:有效, INACTIVE:停用]', trigger: 'blur' }],
+  knowledgeName: [{ required: true, message: '请输入名称', trigger: 'blur' }],
+  knowledgeKey: [{ required: true, message: '请输入知识键', trigger: 'blur' }],
+  categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
+  knowledgeType: [{ required: true, message: '请选择类型', trigger: 'change' }],
+  status: [{ required: true, message: '请选择状态', trigger: 'change' }],
 };
 
-// 打开创建弹窗
 const handleCreate = () => {
   isEdit.value = false;
   editFormRef.value?.clearValidate();
-
-  editForm.organId = undefined;
-  editForm.categoryId = undefined;
-  editForm.knowledgeKey = '';
-  editForm.knowledgeName = '';
-  editForm.knowledgeType = '';
-  editForm.status = '';
-  editForm.description = '';
-  editForm.createUserId = undefined;
-  editDialogVisible.value = true;
+  Object.assign(editForm, {
+    id: undefined,
+    version: undefined,
+    knowledgeName: '',
+    knowledgeKey: '',
+    categoryId: undefined,
+    knowledgeType: 'FILE',
+    status: 'ACTIVE',
+    description: '',
+  });
+  editDrawerVisible.value = true;
 };
 
-// 打开修改弹窗
 const handleEdit = (row: KnowledgeItem) => {
   isEdit.value = true;
   editFormRef.value?.clearValidate();
-
-  editForm.id = row.id;
-  editForm.organId = row.organId;
-  editForm.categoryId = row.categoryId;
-  editForm.knowledgeKey = row.knowledgeKey;
-  editForm.knowledgeName = row.knowledgeName;
-  editForm.knowledgeType = row.knowledgeType;
-  editForm.status = row.status;
-  editForm.description = row.description;
-  editForm.createUserId = row.createUserId;
-  editDialogVisible.value = true;
+  Object.assign(editForm, {
+    id: row.id,
+    version: row.version,
+    knowledgeName: row.knowledgeName,
+    knowledgeKey: row.knowledgeKey,
+    categoryId: row.categoryId,
+    knowledgeType: row.knowledgeType,
+    status: row.status,
+    description: row.description,
+  });
+  editDrawerVisible.value = true;
 };
 
-// 提交数据表单
 const submitEdit = async () => {
   if (!editFormRef.value) return;
-  const valid = await editFormRef.value.validate();
+  const valid = await editFormRef.value.validate().catch(() => false);
   if (!valid) return;
-
   const payload: KnowledgeItemPayload = {
-    organId: editForm.organId,
-    categoryId: editForm.categoryId,
-    knowledgeKey: editForm.knowledgeKey,
     knowledgeName: editForm.knowledgeName,
+    knowledgeKey: editForm.knowledgeKey,
+    categoryId: editForm.categoryId,
     knowledgeType: editForm.knowledgeType,
     status: editForm.status,
     description: editForm.description,
-    createUserId: editForm.createUserId,
   };
-
+  if (isEdit.value) {
+    payload.id = editForm.id;
+    payload.version = editForm.version;
+  }
   try {
-    // 编辑模式下，将 id 添加到 payload 中
-    if (isEdit.value) {
-      payload.id = editForm.id;
-    }
-    await KnowledgeItemApi.save(payload);
+    const id = await KnowledgeItemApi.save(payload);
     ElMessage.success(isEdit.value ? t('G2_MSG_UPDATE_OK', '更新成功') : t('G2_MSG_ADD_OK', '新增成功'));
+    editDrawerVisible.value = false;
     await loadData();
-    editDialogVisible.value = false;
+    if (!isEdit.value) {
+      versionKnowledgeId.value = id;
+      versionDrawerVisible.value = true;
+    }
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : t('G2_MSG_SAVE_FAIL', '保存失败');
-    showErrorMessage(msg);
+    showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_SAVE_FAIL', '保存失败'));
   }
 };
 
-// 挂载回调
-onMounted(() => {
-  // 查询列表
-  loadData();
+onMounted(async () => {
+  await loadCategories();
+  await loadData();
 });
 </script>
 
@@ -410,45 +357,33 @@ onMounted(() => {
   height: 100%;
   box-sizing: border-box;
 }
-
 .knowledge_item-page__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
-  margin-top: 0;
   padding: 16px 20px;
   background-color: var(--g2-bg-container);
   border-radius: 4px;
 }
-
-.knowledge_item-page__title-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .knowledge_item-page__header h2 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  line-height: 1.4;
 }
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
 .knowledge_item-page__search {
   margin-bottom: 12px;
   background-color: var(--g2-bg-container);
 }
-
 .knowledge_item-page__pagination {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
+}
+.field-tip {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.4;
 }
 </style>

@@ -83,3 +83,8 @@ export interface KnowledgeTaskQuery extends BaseSelectListDto {
   errorSummary?: string;
 }
 
+export interface KnowledgeTaskActionPayload {
+  taskId: number;
+  expectedVersion: number;
+}
+

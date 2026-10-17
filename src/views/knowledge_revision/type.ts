@@ -42,33 +42,21 @@ export interface KnowledgeRevision extends BaseVo {
  */
 export interface KnowledgeRevisionPayload {
   id?: number; // 更新时传入 ID，新增时不传
-  organId?: number;
+  /** 更新草稿时的乐观锁期望版本 */
+  version?: number;
   knowledgeId?: number;
   revisionNo?: string;
   sourceType?: string;
-  revisionStatus?: string;
-  sourceFileName?: string;
-  sourceContentType?: string;
-  sourceStoragePath?: string;
-  sourceSha256?: string;
-  sourceFileSize?: number;
   faqQuestion?: string;
   faqAnswer?: string;
-  parserName?: string;
-  parserVersion?: string;
-  parserTaskId?: string;
-  parsedStoragePath?: string;
-  chunkCount?: number;
-  indexStatus?: string;
-  embeddingProfile?: string;
-  embeddingModel?: string;
-  indexCompletedTime?: string;
   priority?: number;
   tagsJson?: string;
-  reviewerUserId?: number;
-  reviewTime?: string;
-  reviewComment?: string;
-  createUserId?: number;
+}
+
+export interface KnowledgeReviewPayload {
+  revisionId: number;
+  expectedVersion: number;
+  comment?: string;
 }
 
 /**

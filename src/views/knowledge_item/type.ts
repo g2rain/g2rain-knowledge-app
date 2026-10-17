@@ -23,14 +23,13 @@ export interface KnowledgeItem extends BaseVo {
  */
 export interface KnowledgeItemPayload {
   id?: number; // 更新时传入 ID，新增时不传
-  organId?: number;
+  version?: number;
   categoryId?: number;
   knowledgeKey?: string;
   knowledgeName?: string;
   knowledgeType?: string;
   status?: string;
   description?: string;
-  createUserId?: number;
 }
 
 /**
