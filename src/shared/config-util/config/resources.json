@@ -1,0 +1,239 @@
+{
+  "pages": [
+    {
+      "pageName": "知识分类表",
+      "pageCode": "knowledge_category",
+      "linkPath": "/knowledge_category"
+    },
+    {
+      "pageName": "知识标签字典表",
+      "pageCode": "knowledge_tag",
+      "linkPath": "/knowledge_tag"
+    },
+    {
+      "pageName": "知识主题表",
+      "pageCode": "knowledge_item",
+      "linkPath": "/knowledge_item"
+    },
+    {
+      "pageName": "知识版本表",
+      "pageCode": "knowledge_revision",
+      "linkPath": "/knowledge_revision"
+    },
+    {
+      "pageName": "知识切片清单表",
+      "pageCode": "knowledge_chunk",
+      "linkPath": "/knowledge_chunk"
+    },
+    {
+      "pageName": "知识解析与索引处理任务表",
+      "pageCode": "knowledge_task",
+      "linkPath": "/knowledge_task"
+    },
+    {
+      "pageName": "知识发布选择表",
+      "pageCode": "knowledge_release",
+      "linkPath": "/knowledge_release"
+    },
+    {
+      "pageName": "知识回复模板表",
+      "pageCode": "knowledge_answer_template",
+      "linkPath": "/knowledge_answer_template"
+    }
+  ],
+  "pageElements": [
+    {
+      "parentId": null,
+      "pageElementName": "新增",
+      "pageElementCode": "knowledge_answer_template:add",
+      "pageElementType": "button",
+      "pageCode": "knowledge_answer_template",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "删除",
+      "pageElementCode": "knowledge_answer_template:delete",
+      "pageElementType": "button",
+      "pageCode": "knowledge_answer_template",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "编辑",
+      "pageElementCode": "knowledge_answer_template:edit",
+      "pageElementType": "button",
+      "pageCode": "knowledge_answer_template",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "新增",
+      "pageElementCode": "knowledge_category:add",
+      "pageElementType": "button",
+      "pageCode": "knowledge_category",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "删除",
+      "pageElementCode": "knowledge_category:delete",
+      "pageElementType": "button",
+      "pageCode": "knowledge_category",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "编辑",
+      "pageElementCode": "knowledge_category:edit",
+      "pageElementType": "button",
+      "pageCode": "knowledge_category",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "新增",
+      "pageElementCode": "knowledge_chunk:add",
+      "pageElementType": "button",
+      "pageCode": "knowledge_chunk",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "删除",
+      "pageElementCode": "knowledge_chunk:delete",
+      "pageElementType": "button",
+      "pageCode": "knowledge_chunk",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "编辑",
+      "pageElementCode": "knowledge_chunk:edit",
+      "pageElementType": "button",
+      "pageCode": "knowledge_chunk",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "新增",
+      "pageElementCode": "knowledge_item:add",
+      "pageElementType": "button",
+      "pageCode": "knowledge_item",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "删除",
+      "pageElementCode": "knowledge_item:delete",
+      "pageElementType": "button",
+      "pageCode": "knowledge_item",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "编辑",
+      "pageElementCode": "knowledge_item:edit",
+      "pageElementType": "button",
+      "pageCode": "knowledge_item",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "新增",
+      "pageElementCode": "knowledge_release:add",
+      "pageElementType": "button",
+      "pageCode": "knowledge_release",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "删除",
+      "pageElementCode": "knowledge_release:delete",
+      "pageElementType": "button",
+      "pageCode": "knowledge_release",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "编辑",
+      "pageElementCode": "knowledge_release:edit",
+      "pageElementType": "button",
+      "pageCode": "knowledge_release",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "新增",
+      "pageElementCode": "knowledge_revision:add",
+      "pageElementType": "button",
+      "pageCode": "knowledge_revision",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "删除",
+      "pageElementCode": "knowledge_revision:delete",
+      "pageElementType": "button",
+      "pageCode": "knowledge_revision",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "编辑",
+      "pageElementCode": "knowledge_revision:edit",
+      "pageElementType": "button",
+      "pageCode": "knowledge_revision",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "新增",
+      "pageElementCode": "knowledge_tag:add",
+      "pageElementType": "button",
+      "pageCode": "knowledge_tag",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "删除",
+      "pageElementCode": "knowledge_tag:delete",
+      "pageElementType": "button",
+      "pageCode": "knowledge_tag",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "编辑",
+      "pageElementCode": "knowledge_tag:edit",
+      "pageElementType": "button",
+      "pageCode": "knowledge_tag",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "新增",
+      "pageElementCode": "knowledge_task:add",
+      "pageElementType": "button",
+      "pageCode": "knowledge_task",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "删除",
+      "pageElementCode": "knowledge_task:delete",
+      "pageElementType": "button",
+      "pageCode": "knowledge_task",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "编辑",
+      "pageElementCode": "knowledge_task:edit",
+      "pageElementType": "button",
+      "pageCode": "knowledge_task",
+      "status": "ENABLED"
+    }
+  ],
+  "apiEndpoints": []
+}
