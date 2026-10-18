@@ -152,7 +152,7 @@ import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rai
 import { showErrorMessage } from '@/components';
 import { compactQuery } from '@shared/knowledge/entity';
 import { OVERLAY_SIZE } from '@shared/knowledge/overlay';
-import { ITEM_STATUS_OPTIONS, KNOWLEDGE_TYPE_OPTIONS } from '@/views/knowledge_revision/status';
+import { ITEM_STATUS_OPTIONS, KNOWLEDGE_TYPE_OPTIONS, resolveTypeLabel } from '@/views/knowledge_revision/status';
 import { KnowledgeCategoryApi } from '@/views/knowledge_category/api';
 import type { KnowledgeCategory } from '@/views/knowledge_category/type';
 import { KnowledgeReleaseApi } from '@/views/knowledge_release/api';
@@ -162,7 +162,7 @@ import RevisionManageDrawer from '@/views/knowledge_revision/RevisionManageDrawe
 const statusOptions = ITEM_STATUS_OPTIONS;
 const typeOptions = KNOWLEDGE_TYPE_OPTIONS;
 const statusLabel = (s?: string) => statusOptions.find((o) => o.value === s)?.label || s || '-';
-const typeLabel = (s?: string) => typeOptions.find((o) => o.value === s)?.label || s || '-';
+const typeLabel = resolveTypeLabel;
 
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
@@ -269,7 +269,7 @@ const editForm = reactive({
   knowledgeName: '',
   knowledgeKey: '',
   categoryId: undefined as number | undefined,
-  knowledgeType: 'FILE',
+  knowledgeType: 'DOCUMENT',
   status: 'ACTIVE',
   description: '',
 });
@@ -290,7 +290,7 @@ const handleCreate = () => {
     knowledgeName: '',
     knowledgeKey: '',
     categoryId: undefined,
-    knowledgeType: 'FILE',
+    knowledgeType: 'DOCUMENT',
     status: 'ACTIVE',
     description: '',
   });

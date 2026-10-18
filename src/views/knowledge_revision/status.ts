@@ -103,7 +103,28 @@ export const ITEM_STATUS_OPTIONS = [
   { label: '停用', value: 'INACTIVE' },
 ];
 
+/** 知识主题类型（knowledge_item.knowledgeType） */
 export const KNOWLEDGE_TYPE_OPTIONS = [
+  { label: '文档', value: 'DOCUMENT' },
+  { label: 'FAQ', value: 'FAQ' },
+];
+
+/** 版本来源类型（knowledge_revision.sourceType） */
+export const SOURCE_TYPE_OPTIONS = [
   { label: '文档', value: 'FILE' },
   { label: 'FAQ', value: 'FAQ' },
 ];
+
+/**
+ * 展示标签：主题用 DOCUMENT/FAQ，来源用 FILE/FAQ；
+ * 兼容历史误写入的 knowledgeType=FILE。
+ */
+export function resolveTypeLabel(type?: string): string {
+  if (!type) return '-';
+  if (type === 'FILE') return '文档';
+  return (
+    KNOWLEDGE_TYPE_OPTIONS.find((o) => o.value === type)?.label ||
+    SOURCE_TYPE_OPTIONS.find((o) => o.value === type)?.label ||
+    type
+  );
+}

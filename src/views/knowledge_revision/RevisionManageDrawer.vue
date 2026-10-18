@@ -173,10 +173,11 @@
           <el-input v-model="editForm.revisionNo" placeholder="如 v1 或 2026.10.17" />
         </el-form-item>
         <el-form-item v-if="editIsCreate" label="来源类型" prop="sourceType">
-          <el-radio-group v-model="editForm.sourceType">
+          <el-radio-group v-model="editForm.sourceType" disabled>
             <el-radio value="FILE">文档</el-radio>
             <el-radio value="FAQ">FAQ</el-radio>
           </el-radio-group>
+          <div class="field-tip">由来源主题类型决定：文档主题 → 文件，FAQ 主题 → FAQ</div>
         </el-form-item>
         <template v-if="editForm.sourceType === 'FAQ'">
           <el-form-item label="标准问题" prop="faqQuestion">
@@ -249,7 +250,7 @@ import { OVERLAY_SIZE } from '@shared/knowledge/overlay';
 import {
   formatNextStepHint,
   getRevisionStatusInfo,
-  KNOWLEDGE_TYPE_OPTIONS,
+  resolveTypeLabel,
 } from './status';
 
 const props = defineProps<{
@@ -288,7 +289,7 @@ const activeRevisionLabel = computed(() => {
   return hit ? hit.revisionNo : `#${activeRevisionId.value}`;
 });
 
-const typeLabel = (type?: string) => KNOWLEDGE_TYPE_OPTIONS.find((o) => o.value === type)?.label || type || '-';
+const typeLabel = resolveTypeLabel;
 
 const parseTagCodes = (tagsJson?: string): string[] => {
   if (!tagsJson) return [];
@@ -566,5 +567,11 @@ watch(
   white-space: pre-wrap;
   margin: 0;
   font-family: inherit;
+}
+.field-tip {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.4;
 }
 </style>

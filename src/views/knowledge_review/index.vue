@@ -125,13 +125,13 @@ import type { KnowledgeRevision, KnowledgeRevisionQuery } from '@/views/knowledg
 import { KnowledgeItemApi } from '@/views/knowledge_item/api';
 import { KnowledgeTagApi } from '@/views/knowledge_tag/api';
 import type { KnowledgeTag } from '@/views/knowledge_tag/type';
-import { KNOWLEDGE_TYPE_OPTIONS } from '@/views/knowledge_revision/status';
+import { resolveTypeLabel } from '@/views/knowledge_revision/status';
 
 interface ReviewRow extends KnowledgeRevision {
   knowledgeName?: string;
 }
 
-const typeLabel = (s?: string) => KNOWLEDGE_TYPE_OPTIONS.find((o) => o.value === s)?.label || s || '-';
+const typeLabel = resolveTypeLabel;
 
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
