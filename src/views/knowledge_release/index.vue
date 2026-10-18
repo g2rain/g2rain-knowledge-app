@@ -240,12 +240,10 @@ const publishRow = async (row: ReleaseRow) => {
     });
 
     const revision = await KnowledgeRevisionApi.getById(row.revisionId);
-    const { releaseId, releaseVersion } = await ensureRelease(row);
+    const { releaseId } = await ensureRelease(row);
     await KnowledgeReleaseApi.publish({
       releaseId,
       revisionId: revision.id,
-      expectedReleaseVersion: releaseVersion,
-      expectedRevisionVersion: revision.version,
       reason: reason?.trim() || undefined,
     });
     ElMessage.success('发布成功。可通过「效果验证」检查结果');
@@ -287,8 +285,6 @@ const rollbackTo = async (target: KnowledgeRevision) => {
     await KnowledgeReleaseApi.rollback({
       releaseId: release.id,
       revisionId: revision.id,
-      expectedReleaseVersion: release.version,
-      expectedRevisionVersion: revision.version,
       reason: reason?.trim() || undefined,
     });
     ElMessage.success('回滚成功。可通过「效果验证」检查结果');

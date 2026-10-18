@@ -50,8 +50,6 @@ export interface KnowledgeReleaseQuery extends BaseSelectListDto {
 export interface KnowledgeReleasePublishPayload {
   releaseId: number;
   revisionId: number;
-  expectedReleaseVersion: number;
-  expectedRevisionVersion: number;
   reason?: string;
 }
 
