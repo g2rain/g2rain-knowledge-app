@@ -1,8 +1,16 @@
 [
   {
     "parentId": null,
-    "pageElementName": "answer' : 'knowledge_search:retrieve",
-    "pageElementCode": "activeTab === 'answer' ? 'knowledge_search:answer' : 'knowledge_search:retrieve",
+    "pageElementName": "问答验证",
+    "pageElementCode": "knowledge_search:answer",
+    "pageElementType": "button",
+    "pageCode": "knowledge_search",
+    "status": "ENABLED"
+  },
+  {
+    "parentId": null,
+    "pageElementName": "检索验证",
+    "pageElementCode": "knowledge_search:retrieve",
     "pageElementType": "button",
     "pageCode": "knowledge_search",
     "status": "ENABLED"
