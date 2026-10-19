@@ -1,7 +1,7 @@
 {
   "name": "g2rain-knowledge-app",
   "version": "1.0.0",
-  "description": "g2rain-knowledge-app - G2rain Vue 3 micro-frontend sub-app (Vite + qiankun + Element Plus).",
+  "description": "G2rain knowledge operations app: content, review, processing, publication and retrieval/answer validation.",
   "private": false,
   "license": "Apache-2.0",
   "repository": {
@@ -69,7 +69,7 @@
     "@types/mockjs": "^1.0.10",
     "@types/node": "^22.19.0",
     "@vitejs/plugin-vue": "^6.0.3",
-    "create-g2rain-app": "file:../g2rain-app-cli",
+    "create-g2rain-app": "1.0.0",
     "tsx": "^4.21.0",
     "typescript": "5.9.3",
     "vite": "^7.3.0",

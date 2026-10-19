@@ -15,7 +15,7 @@
 
 ## 开发
 
-业务 App 的创建、页面生成和资源配置生成使用 [CLI 使用手册](https://github.com/g2rain/g2rain-app-cli/blob/main/docs/development/usage.md)。下面是维护本模板仓库时的文档。
+业务 App 的创建、页面生成和资源配置生成使用 [CLI 使用手册](https://github.com/g2rain/g2rain-app-cli/blob/main/docs/development/usage.md)。下面是维护知识库业务应用时的工程文档。
 
 - [本地开发](development/local-development.md)
 - [代码规范](development/code-conventions.md)
@@ -47,3 +47,9 @@
 - 修改公共工程能力时应评估与官方模板及其他业务应用的兼容性，必须同时考虑模板仓库和生成后项目。
 - 生成器输出不是天然正确的代码；必须 Review、测试并允许业务项目继续修改。
 - 架构目标与当前偏差分开维护，不能把技术债固化为新规范。
+
+
+## 发布
+
+- [发布记录与流程](releases/README.md)
+- [v1.0.0：配套、验证与已知限制](releases/v1.0.0.md)

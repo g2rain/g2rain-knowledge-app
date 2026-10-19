@@ -156,3 +156,18 @@ aiCoding:
     - 执行 npm run build
     - 动态检查文档链接和项目元数据
     - 报告未验证事项、生成覆盖风险和剩余架构偏差
+
+
+release:
+  version: 1.0.0
+  channel: stable
+  notes: docs/releases/v1.0.0.md
+  pairedRepository: g2rain/g2rain-knowledge
+  pairedVersion: 1.0.0
+  verification:
+    maintainerServer: passed-reported
+    reportedAt: "2026-10-19"
+    note: 维护者确认服务器端验证通过；具体平台依赖版本及环境日志未附，不据此关闭历史可靠性和架构差异。
+    localBuild: passed
+    cleanInstall: passed
+    localBuildNote: 独立目录按公开锁文件安装并执行 npm run build，通过；现有构建警告见发布说明。
