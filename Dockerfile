@@ -6,9 +6,6 @@ WORKDIR /app
 ARG VITE_BUILD_MODE=production
 
 COPY package.json package-lock.json .npmrc ./
-# create-g2rain-app 为 file:../g2rain-app-cli；镜像构建不需要 CLI，放最小 stub 以满足 npm ci
-RUN mkdir -p /g2rain-app-cli \
- && printf '%s\n' '{"name":"create-g2rain-app","version":"0.1.0","private":true}' > /g2rain-app-cli/package.json
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --legacy-peer-deps --no-audit --no-fund --loglevel=warn
 
@@ -77,4 +74,3 @@ RUN if [ ! -f /usr/local/openresty/nginx/lua/keys/private-key.der ] || [ ! -f /u
 EXPOSE 8080
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
-
