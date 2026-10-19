@@ -2,15 +2,17 @@
   <div class="knowledge_search-page">
     <div class="knowledge_search-page__header">
       <h2>效果验证</h2>
+      <el-tag type="info">默认问答验证</el-tag>
     </div>
-
-    <el-tabs v-model="activeTab">
-      <el-tab-pane label="问答验证" name="answer" />
-      <el-tab-pane label="检索验证" name="retrieve" />
-    </el-tabs>
 
     <el-card shadow="never" class="knowledge_search-page__panel">
       <el-form label-width="96px" @submit.prevent>
+        <el-form-item label="验证方式">
+          <el-select v-model="verifyMode" style="width: 200px" @change="onModeChange">
+            <el-option label="问答验证" value="answer" />
+            <el-option label="检索验证" value="retrieve" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="问题">
           <el-input
             v-model="form.query"
@@ -21,7 +23,7 @@
             placeholder="输入要验证的问题"
           />
         </el-form-item>
-        <el-form-item v-if="activeTab === 'answer'" label="回复模板">
+        <el-form-item v-if="isAnswerMode" label="回复模板">
           <el-select v-model="form.templateCode" filterable placeholder="选择启用模板" style="width: 320px">
             <el-option
               v-for="tpl in templates"
@@ -63,7 +65,7 @@
 
         <el-form-item>
           <el-button
-            v-if="activeTab === 'answer'"
+            v-if="isAnswerMode"
             type="primary"
             :loading="loading"
             v-permission="'knowledge_search:answer'"
@@ -85,7 +87,7 @@
     </el-card>
 
     <el-card v-if="result" shadow="never" class="knowledge_search-page__result">
-      <template v-if="activeTab === 'answer'">
+      <template v-if="isAnswerMode">
         <h3>回答</h3>
         <el-alert
           v-if="!result.answerable"
@@ -108,7 +110,7 @@
       </template>
 
       <div v-if="(result.sources || []).length" class="sources">
-        <h4>{{ activeTab === 'answer' ? '引用依据' : '检索结果' }}</h4>
+        <h4>{{ isAnswerMode ? '引用依据' : '检索结果' }}</h4>
         <el-collapse>
           <el-collapse-item
             v-for="(src, idx) in result.sources"
@@ -155,7 +157,9 @@ import type { KnowledgeAnswerTemplate } from '@/views/knowledge_answer_template/
 import { KnowledgeTagApi } from '@/views/knowledge_tag/api';
 import type { KnowledgeTag } from '@/views/knowledge_tag/type';
 
-const activeTab = ref<'answer' | 'retrieve'>('answer');
+type VerifyMode = 'answer' | 'retrieve';
+
+const verifyMode = ref<VerifyMode>('answer');
 const loading = ref(false);
 const advancedOpen = ref<string[]>([]);
 const templates = ref<KnowledgeAnswerTemplate[]>([]);
@@ -170,6 +174,7 @@ const form = reactive({
   topK: undefined as number | undefined,
 });
 
+const isAnswerMode = computed(() => verifyMode.value === 'answer');
 const answerResult = computed(() => result.value as KnowledgeAnswerResult | null);
 
 const unanswerableTitle = computed(() => {
@@ -183,6 +188,10 @@ const unanswerableTitle = computed(() => {
 const sourceTitle = (src: KnowledgeEvidence, idx: number) => {
   const title = src.title || src.section || `证据 #${idx + 1}`;
   return title;
+};
+
+const onModeChange = () => {
+  result.value = null;
 };
 
 const runVerify = async () => {
@@ -199,7 +208,7 @@ const runVerify = async () => {
       anyTagCodes: form.anyTagCodes.length ? form.anyTagCodes : undefined,
       topK: form.topK,
     };
-    if (activeTab.value === 'answer') {
+    if (isAnswerMode.value) {
       result.value = await KnowledgeSearchApi.answer({
         ...payload,
         templateCode: form.templateCode || 'DEFAULT',
@@ -238,12 +247,12 @@ onMounted(async () => {
   padding: 20px;
   background-color: var(--g2-bg-page);
   min-height: 100%;
-  height: 100%;
   box-sizing: border-box;
 }
 .knowledge_search-page__header {
   display: flex;
   align-items: center;
+  gap: 12px;
   margin-bottom: 12px;
   padding: 16px 20px;
   background-color: var(--g2-bg-container);
