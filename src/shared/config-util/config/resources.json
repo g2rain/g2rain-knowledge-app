@@ -54,22 +54,6 @@
   "pageElements": [
     {
       "parentId": null,
-      "pageElementName": "问答验证",
-      "pageElementCode": "knowledge_search:answer",
-      "pageElementType": "button",
-      "pageCode": "knowledge_search",
-      "status": "ENABLED"
-    },
-    {
-      "parentId": null,
-      "pageElementName": "检索验证",
-      "pageElementCode": "knowledge_search:retrieve",
-      "pageElementType": "button",
-      "pageCode": "knowledge_search",
-      "status": "ENABLED"
-    },
-    {
-      "parentId": null,
       "pageElementName": "新增",
       "pageElementCode": "knowledge_answer_template:add",
       "pageElementType": "button",
@@ -194,6 +178,22 @@
       "pageElementCode": "knowledge_revision:submit-review",
       "pageElementType": "button",
       "pageCode": "knowledge_revision",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "answer",
+      "pageElementCode": "knowledge_search:answer",
+      "pageElementType": "button",
+      "pageCode": "knowledge_search",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "retrieve",
+      "pageElementCode": "knowledge_search:retrieve",
+      "pageElementType": "button",
+      "pageCode": "knowledge_search",
       "status": "ENABLED"
     },
     {
