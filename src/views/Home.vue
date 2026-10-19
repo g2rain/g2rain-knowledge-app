@@ -86,6 +86,7 @@ import { isAloneMode } from '@shared/utils/mode.util';
 import { useLocaleStore } from '@platform/stores';
 import { t } from '@platform/i18n';
 import { getHomeRoutes } from './route-map';
+import { resourceManager } from '@runtime/boot/resource';
 
 const router = useRouter();
 const isMock = isMockEnabled();
@@ -99,7 +100,16 @@ const selectedLocale = computed({
   },
 });
 
-const homeRoutes = computed(() => getHomeRoutes());
+/** 与授权页面资源取交集；无授权数据时降级为静态首页入口 */
+const homeRoutes = computed(() => {
+  const staticRoutes = getHomeRoutes();
+  const pages = resourceManager.getPages();
+  if (!pages.length) {
+    return staticRoutes;
+  }
+  const allowed = new Set(pages.map((p) => p.linkPath));
+  return staticRoutes.filter((route) => allowed.has(route.path));
+});
 
 const goToRoute = (path: string) => {
   router.push(path);

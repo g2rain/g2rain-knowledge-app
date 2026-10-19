@@ -1,5 +1,7 @@
 # 知识库运营页面升级方案
 
+> 状态：已被 [知识应用菜单、交互与双壳集成方案](20261017-knowledge-interaction-menu-plan.md) 取代，仅供背景追溯。下文独立版本/切片路由、重复动作入口及下载接口待实现等描述不作为实施依据；以后者的弹窗/抽屉方案、接口核查和验收约定为准。
+
 ## 背景
 
 当前 `src/views` 已由代码生成器生成知识分类、标签、主题、版本、切片、任务、发布和回复模板八个表级页面。这些页面适合核对原始数据，但把存储字段直接暴露给使用者，不能体现知识库的实际工作流。
@@ -168,8 +170,8 @@ stateDiagram-v2
 
 调用接口：
 
-- `POST /knowledge/retrieve`
-- `POST /knowledge/answer`
+- `POST /knowledge/knowledge/retrieve`
+- `POST /knowledge/knowledge/answer`
 
 `/answer` 在检索、重排序后按 `templateCode` 取得启用模板，再调用模型。模板编码不是模型名称。无证据时显示服务端返回的不可回答结果，不在浏览器中补造答案。
 

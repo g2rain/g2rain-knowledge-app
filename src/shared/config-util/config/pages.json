@@ -1,42 +1,52 @@
 [
   {
-    "pageName": "知识分类表",
-    "pageCode": "knowledge_category",
-    "linkPath": "/knowledge_category"
-  },
-  {
-    "pageName": "知识标签字典表",
-    "pageCode": "knowledge_tag",
-    "linkPath": "/knowledge_tag"
-  },
-  {
-    "pageName": "知识主题表",
+    "pageName": "知识内容",
     "pageCode": "knowledge_item",
     "linkPath": "/knowledge_item"
   },
   {
-    "pageName": "知识版本表",
-    "pageCode": "knowledge_revision",
-    "linkPath": "/knowledge_revision"
+    "pageName": "内容审核",
+    "pageCode": "knowledge_review",
+    "linkPath": "/knowledge_review"
   },
   {
-    "pageName": "知识切片清单表",
-    "pageCode": "knowledge_chunk",
-    "linkPath": "/knowledge_chunk"
-  },
-  {
-    "pageName": "知识解析与索引处理任务表",
+    "pageName": "知识处理",
     "pageCode": "knowledge_task",
     "linkPath": "/knowledge_task"
   },
   {
-    "pageName": "知识发布选择表",
+    "pageName": "发布管理",
     "pageCode": "knowledge_release",
     "linkPath": "/knowledge_release"
   },
   {
-    "pageName": "知识回复模板表",
+    "pageName": "效果验证",
+    "pageCode": "knowledge_search",
+    "linkPath": "/knowledge_search"
+  },
+  {
+    "pageName": "分类管理",
+    "pageCode": "knowledge_category",
+    "linkPath": "/knowledge_category"
+  },
+  {
+    "pageName": "标签管理",
+    "pageCode": "knowledge_tag",
+    "linkPath": "/knowledge_tag"
+  },
+  {
+    "pageName": "回复模板",
     "pageCode": "knowledge_answer_template",
     "linkPath": "/knowledge_answer_template"
+  },
+  {
+    "pageName": "版本管理（已迁移）",
+    "pageCode": "knowledge_revision",
+    "linkPath": "/knowledge_revision"
+  },
+  {
+    "pageName": "切片清单（已迁移）",
+    "pageCode": "knowledge_chunk",
+    "linkPath": "/knowledge_chunk"
   }
 ]

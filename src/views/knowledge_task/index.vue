@@ -1,126 +1,89 @@
-
 <template>
   <div class="knowledge_task-page">
-    <!-- 查询表单 -->
     <el-card class="knowledge_task-page__search" shadow="never">
-      <!-- 基础查询表单（BaseSelectListDto） -->
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
-        <!-- 业务特定查询字段 -->
-        <el-form-item label="机构ID">
-          <el-input v-model="queryForm.organId" placeholder="请输入机构ID" clearable style="width: 200px" />
+        <el-form-item label="队列类型">
+          <el-select v-model="queryForm.queueType" style="width: 160px" @change="handleSearch">
+            <el-option
+              v-for="opt in queueOptions"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
+            />
+          </el-select>
         </el-form-item>
-        <el-form-item label="知识版本ID">
-          <el-input v-model="queryForm.revisionId" placeholder="请输入知识版本ID" clearable style="width: 200px" />
+        <el-form-item label="知识名称">
+          <el-input v-model="queryForm.knowledgeName" placeholder="知识名称" clearable style="width: 180px" />
         </el-form-item>
-        <el-form-item label="知识处理任务类型；不承载发布、回滚或下线">
-          <el-input v-model="queryForm.taskType" placeholder="请输入知识处理任务类型；不承载发布、回滚或下线" clearable style="width: 200px" />
+        <el-form-item label="版本号">
+          <el-input v-model="queryForm.revisionNo" placeholder="版本号" clearable style="width: 140px" />
         </el-form-item>
-        <el-form-item label="任务状态">
-          <el-input v-model="queryForm.taskStatus" placeholder="请输入任务状态" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="幂等键">
-          <el-input v-model="queryForm.idempotencyKey" placeholder="请输入幂等键" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="不可变处理输入快照，不含正文或凭据">
-          <el-input v-model="queryForm.inputSnapshot" placeholder="请输入不可变处理输入快照，不含正文或凭据" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="尝试次数">
-          <el-input v-model="queryForm.attemptNo" placeholder="请输入尝试次数" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="任务可被领取时间，用于处理任务延迟重试">
-          <el-input v-model="queryForm.availableTime" placeholder="请输入任务可被领取时间，用于处理任务延迟重试" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="当前任务工作者ID">
-          <el-input v-model="queryForm.leaseOwner" placeholder="请输入当前任务工作者ID" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="任务领取租约到期时间">
-          <el-input v-model="queryForm.leaseExpireTime" placeholder="请输入任务领取租约到期时间" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="任务租约 fencing 代次">
-          <el-input v-model="queryForm.leaseGeneration" placeholder="请输入任务租约 fencing 代次" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="运行中任务协作取消ID">
-          <el-input v-model="queryForm.cancelRequested" placeholder="请输入运行中任务协作取消ID" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="外部提供方名称">
-          <el-input v-model="queryForm.providerName" placeholder="请输入外部提供方名称" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="模型ID">
-          <el-input v-model="queryForm.modelName" placeholder="请输入模型ID" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="调用链ID">
-          <el-input v-model="queryForm.traceId" placeholder="请输入调用链ID" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="开始时间">
-          <el-input v-model="queryForm.startedTime" placeholder="请输入开始时间" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="完成时间">
-          <el-input v-model="queryForm.finishedTime" placeholder="请输入完成时间" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="安全错误码">
-          <el-input v-model="queryForm.errorCode" placeholder="请输入安全错误码" clearable style="width: 200px" />
-        </el-form-item>
-        <el-form-item label="净化后的错误摘要，不得含原文或Secret">
-          <el-input v-model="queryForm.errorSummary" placeholder="请输入净化后的错误摘要，不得含原文或Secret" clearable style="width: 200px" />
-        </el-form-item>
-
-        <!-- 操作按钮 -->
         <template #actions>
           <el-form-item>
-            <el-button type="primary" @click="handleSearch">{{ $t('G2_BTN_QUERY', '查询') }}</el-button>
-            <el-button @click="handleReset">{{ $t('G2_BTN_RESET', '重置') }}</el-button>
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
           </el-form-item>
         </template>
       </QueryForm>
     </el-card>
 
-    <!-- 标题和操作按钮 -->
     <div class="knowledge_task-page__header">
-      <div class="knowledge_task-page__title-group">
-        <h2>管理知识解析与索引处理任务表数据</h2>
-      </div>
-      <el-button type="primary" v-permission="'knowledge_task:add'" @click="handleCreate">新增知识解析与索引处理任务表</el-button>
+      <h2>知识处理</h2>
+      <el-tag type="info">默认待处理队列</el-tag>
     </div>
 
-    <SortableTable :data="tableData" border stripe style="width: 100%" :enable-multi-sort="true" @sort-change="handleSortChange">
-      <el-table-column prop="id" :label="$t('G2_FIELD_ID', 'ID')" width="120" />
-      <el-table-column prop="organId" label="机构ID" width="140" />
-      <el-table-column prop="revisionId" label="知识版本ID" width="140" />
-      <el-table-column prop="taskType" label="知识处理任务类型；不承载发布、回滚或下线" width="180" />
-      <el-table-column prop="taskStatus" label="任务状态" width="180" />
-      <el-table-column prop="idempotencyKey" label="幂等键" width="180" />
-      <el-table-column prop="inputSnapshot" label="不可变处理输入快照，不含正文或凭据" width="180" />
-      <el-table-column prop="attemptNo" label="尝试次数" width="140" />
-      <el-table-column prop="availableTime" label="任务可被领取时间，用于处理任务延迟重试" width="180" />
-      <el-table-column prop="leaseOwner" label="当前任务工作者ID" width="180" />
-      <el-table-column prop="leaseExpireTime" label="任务领取租约到期时间" width="180" />
-      <el-table-column prop="leaseGeneration" label="任务租约 fencing 代次" width="140" />
-      <el-table-column prop="cancelRequested" label="运行中任务协作取消ID" width="140" />
-      <el-table-column prop="providerName" label="外部提供方名称" width="180" />
-      <el-table-column prop="modelName" label="模型ID" width="180" />
-      <el-table-column prop="traceId" label="调用链ID" width="180" />
-      <el-table-column prop="startedTime" label="开始时间" width="180" />
-      <el-table-column prop="finishedTime" label="完成时间" width="180" />
-      <el-table-column prop="errorCode" label="安全错误码" width="180" />
-      <el-table-column prop="errorSummary" label="净化后的错误摘要，不得含原文或Secret" width="180" />
-      <TableColumn prop="createTime" :label="$t('G2_FIELD_CREATE_TIME', '创建时间')" width="180" sortable="custom" />
-      <TableColumn prop="updateTime" :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')" width="180" sortable="custom" />
-      <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" fixed="right" width="280">
-        <template #default="{ row }">
-          <el-button type="primary" link size="small" @click="handleView(row)">{{ $t('G2_BTN_DETAIL', '明细') }}</el-button>
-          <el-button type="primary" v-permission="'knowledge_task:edit'" link size="small" @click="handleEdit(row)">{{ $t('G2_BTN_EDIT', '编辑') }}</el-button>
-          <el-button type="danger" v-permission="'knowledge_task:delete'" link size="small" @click="handleDelete(row)">{{ $t('G2_BTN_DELETE', '删除') }}</el-button>
-        </template>
-        <template #header>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span>{{ $t('G2_FIELD_ACTION', '操作') }}</span>
-            <SortManagerButton />
-          </div>
-        </template>
-      </el-table-column>
-    </SortableTable>
+    <el-table v-loading="loading" :data="tableData" border stripe style="width: 100%">
+      <el-table-column prop="knowledgeName" label="知识名称" min-width="160" show-overflow-tooltip />
+      <el-table-column prop="revisionNo" label="版本号" width="110" />
+      <template v-if="isPendingQueue">
+        <el-table-column prop="revisionStatus" label="版本状态" width="120">
+          <template #default="{ row }">{{ getRevisionStatusInfo(row.revisionStatus).label }}</template>
+        </el-table-column>
+        <el-table-column prop="updateTime" label="更新时间" width="170" />
+        <el-table-column label="操作" width="140" fixed="right">
+          <template #default="{ row }">
+            <el-button type="primary" link v-permission="'knowledge_task:process'" @click="startProcess(row)">
+              开始处理
+            </el-button>
+          </template>
+        </el-table-column>
+      </template>
+      <template v-else>
+        <el-table-column prop="taskType" label="任务类型" width="110" />
+        <el-table-column prop="taskStatus" label="任务状态" width="110" />
+        <el-table-column prop="attemptNo" label="尝试" width="80" />
+        <el-table-column label="耗时" width="100">
+          <template #default="{ row }">{{ formatDuration(row) }}</template>
+        </el-table-column>
+        <el-table-column prop="errorCode" label="错误码" width="120" show-overflow-tooltip />
+        <el-table-column prop="errorSummary" label="摘要" min-width="160" show-overflow-tooltip />
+        <el-table-column label="操作" width="200" fixed="right">
+          <template #default="{ row }">
+            <el-button type="primary" link @click="openDetail(row)">详情</el-button>
+            <el-button
+              v-if="row.taskStatus === 'FAILED'"
+              type="primary"
+              link
+              v-permission="'knowledge_task:retry'"
+              @click="retryTask(row)"
+            >
+              重试
+            </el-button>
+            <el-button
+              v-if="row.taskStatus === 'PENDING'"
+              type="danger"
+              link
+              v-permission="'knowledge_task:cancel'"
+              @click="cancelTask(row)"
+            >
+              取消
+            </el-button>
+          </template>
+        </el-table-column>
+      </template>
+    </el-table>
+    <el-empty v-if="!loading && !tableData.length" :description="emptyText" :image-size="80" />
 
-    <!-- 分页组件 -->
     <div class="knowledge_task-page__pagination">
       <el-pagination
         v-model:current-page="pagination.pageNum"
@@ -133,431 +96,330 @@
       />
     </div>
 
-    <!-- 新增 / 编辑弹窗 -->
-    <el-dialog v-model="editDialogVisible" :title="isEdit ? '编辑知识解析与索引处理任务表' : '新增知识解析与索引处理任务表'" width="520px">
-      <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="100px">
-        <el-form-item label="机构ID" prop="organId">
-          <el-input v-model="editForm.organId" placeholder="请输入机构ID" />
-        </el-form-item>
-        <el-form-item label="知识版本ID" prop="revisionId">
-          <el-input v-model="editForm.revisionId" placeholder="请输入知识版本ID" />
-        </el-form-item>
-        <el-form-item label="知识处理任务类型；不承载发布、回滚或下线" prop="taskType">
-          <el-input v-model="editForm.taskType" placeholder="请输入知识处理任务类型；不承载发布、回滚或下线" />
-        </el-form-item>
-        <el-form-item label="任务状态" prop="taskStatus">
-          <el-input v-model="editForm.taskStatus" placeholder="请输入任务状态" />
-        </el-form-item>
-        <el-form-item label="幂等键" prop="idempotencyKey">
-          <el-input v-model="editForm.idempotencyKey" placeholder="请输入幂等键" />
-        </el-form-item>
-        <el-form-item label="不可变处理输入快照，不含正文或凭据" prop="inputSnapshot">
-          <el-input v-model="editForm.inputSnapshot" placeholder="请输入不可变处理输入快照，不含正文或凭据" />
-        </el-form-item>
-        <el-form-item label="尝试次数" prop="attemptNo">
-          <el-input v-model="editForm.attemptNo" placeholder="请输入尝试次数" />
-        </el-form-item>
-        <el-form-item label="任务可被领取时间，用于处理任务延迟重试" prop="availableTime">
-          <el-input v-model="editForm.availableTime" placeholder="请输入任务可被领取时间，用于处理任务延迟重试" />
-        </el-form-item>
-        <el-form-item label="当前任务工作者ID" prop="leaseOwner">
-          <el-input v-model="editForm.leaseOwner" placeholder="请输入当前任务工作者ID" />
-        </el-form-item>
-        <el-form-item label="任务领取租约到期时间" prop="leaseExpireTime">
-          <el-input v-model="editForm.leaseExpireTime" placeholder="请输入任务领取租约到期时间" />
-        </el-form-item>
-        <el-form-item label="任务租约 fencing 代次" prop="leaseGeneration">
-          <el-input v-model="editForm.leaseGeneration" placeholder="请输入任务租约 fencing 代次" />
-        </el-form-item>
-        <el-form-item label="运行中任务协作取消ID" prop="cancelRequested">
-          <el-input v-model="editForm.cancelRequested" placeholder="请输入运行中任务协作取消ID" />
-        </el-form-item>
-        <el-form-item label="外部提供方名称" prop="providerName">
-          <el-input v-model="editForm.providerName" placeholder="请输入外部提供方名称" />
-        </el-form-item>
-        <el-form-item label="模型ID" prop="modelName">
-          <el-input v-model="editForm.modelName" placeholder="请输入模型ID" />
-        </el-form-item>
-        <el-form-item label="调用链ID" prop="traceId">
-          <el-input v-model="editForm.traceId" placeholder="请输入调用链ID" />
-        </el-form-item>
-        <el-form-item label="开始时间" prop="startedTime">
-          <el-input v-model="editForm.startedTime" placeholder="请输入开始时间" />
-        </el-form-item>
-        <el-form-item label="完成时间" prop="finishedTime">
-          <el-input v-model="editForm.finishedTime" placeholder="请输入完成时间" />
-        </el-form-item>
-        <el-form-item label="安全错误码" prop="errorCode">
-          <el-input v-model="editForm.errorCode" placeholder="请输入安全错误码" />
-        </el-form-item>
-        <el-form-item label="净化后的错误摘要，不得含原文或Secret" prop="errorSummary">
-          <el-input v-model="editForm.errorSummary" placeholder="请输入净化后的错误摘要，不得含原文或Secret" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="editDialogVisible = false">{{ $t('G2_BTN_CANCEL', '取消') }}</el-button>
-          <el-button type="primary" @click="submitEdit">{{ $t('G2_BTN_SAVE', '保存') }}</el-button>
-        </span>
-      </template>
-    </el-dialog>
-
-    <!-- 明细弹窗 -->
-    <el-dialog v-model="detailDialogVisible" title="知识解析与索引处理任务表明细" width="520px">
-      <el-descriptions :column="1" border>
-        <el-descriptions-item :label="$t('G2_FIELD_ID', 'ID')">{{ currentRow?.id }}</el-descriptions-item>
-        <el-descriptions-item label="机构ID">{{ currentRow?.organId }}</el-descriptions-item>
-        <el-descriptions-item label="知识版本ID">{{ currentRow?.revisionId }}</el-descriptions-item>
-        <el-descriptions-item label="知识处理任务类型；不承载发布、回滚或下线">{{ currentRow?.taskType }}</el-descriptions-item>
-        <el-descriptions-item label="任务状态">{{ currentRow?.taskStatus }}</el-descriptions-item>
-        <el-descriptions-item label="幂等键">{{ currentRow?.idempotencyKey }}</el-descriptions-item>
-        <el-descriptions-item label="不可变处理输入快照，不含正文或凭据">{{ currentRow?.inputSnapshot }}</el-descriptions-item>
-        <el-descriptions-item label="尝试次数">{{ currentRow?.attemptNo }}</el-descriptions-item>
-        <el-descriptions-item label="任务可被领取时间，用于处理任务延迟重试">{{ currentRow?.availableTime }}</el-descriptions-item>
-        <el-descriptions-item label="当前任务工作者ID">{{ currentRow?.leaseOwner }}</el-descriptions-item>
-        <el-descriptions-item label="任务领取租约到期时间">{{ currentRow?.leaseExpireTime }}</el-descriptions-item>
-        <el-descriptions-item label="任务租约 fencing 代次">{{ currentRow?.leaseGeneration }}</el-descriptions-item>
-        <el-descriptions-item label="运行中任务协作取消ID">{{ currentRow?.cancelRequested }}</el-descriptions-item>
-        <el-descriptions-item label="外部提供方名称">{{ currentRow?.providerName }}</el-descriptions-item>
-        <el-descriptions-item label="模型ID">{{ currentRow?.modelName }}</el-descriptions-item>
-        <el-descriptions-item label="调用链ID">{{ currentRow?.traceId }}</el-descriptions-item>
-        <el-descriptions-item label="开始时间">{{ currentRow?.startedTime }}</el-descriptions-item>
-        <el-descriptions-item label="完成时间">{{ currentRow?.finishedTime }}</el-descriptions-item>
-        <el-descriptions-item label="安全错误码">{{ currentRow?.errorCode }}</el-descriptions-item>
-        <el-descriptions-item label="净化后的错误摘要，不得含原文或Secret">{{ currentRow?.errorSummary }}</el-descriptions-item>
-        <el-descriptions-item :label="$t('G2_FIELD_CREATE_TIME', '创建时间')">{{ currentRow?.createTime }}</el-descriptions-item>
-        <el-descriptions-item :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')">{{ currentRow?.updateTime }}</el-descriptions-item>
+    <el-drawer v-model="detailVisible" title="任务详情" :size="OVERLAY_SIZE.drawer" destroy-on-close>
+      <el-descriptions v-if="detail" :column="1" border>
+        <el-descriptions-item label="知识名称">{{ detail.knowledgeName }}</el-descriptions-item>
+        <el-descriptions-item label="版本号">{{ detail.revisionNo }}</el-descriptions-item>
+        <el-descriptions-item label="任务类型">{{ detail.taskType }}</el-descriptions-item>
+        <el-descriptions-item label="任务状态">{{ detail.taskStatus }}</el-descriptions-item>
+        <el-descriptions-item label="版本状态">
+          {{ getRevisionStatusInfo(detail.revisionStatus).label }}
+        </el-descriptions-item>
+        <el-descriptions-item label="尝试次数">{{ detail.attemptNo }}</el-descriptions-item>
+        <el-descriptions-item label="耗时">{{ formatDuration(detail) }}</el-descriptions-item>
+        <el-descriptions-item label="错误码">{{ detail.errorCode || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="摘要">{{ detail.errorSummary || '-' }}</el-descriptions-item>
       </el-descriptions>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button type="primary" @click="detailDialogVisible = false">{{ $t('G2_BTN_CLOSE', '关闭') }}</el-button>
-        </span>
-      </template>
-    </el-dialog>
+    </el-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
-import type { FormInstance, FormRules } from 'element-plus';
-import { ElMessageBox, ElMessage } from 'element-plus';
-import { t } from '@platform/i18n';
-import { KnowledgeTaskApi } from './api';
-import type { KnowledgeTask, KnowledgeTaskPayload, KnowledgeTaskQuery } from './type';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { QueryForm } from '@g2rain/ui';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
-
-import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
 import { showErrorMessage } from '@/components';
+import { compactQuery } from '@shared/knowledge/entity';
+import { OVERLAY_SIZE, POLL_INTERVAL_MS } from '@shared/knowledge/overlay';
+import { KnowledgeTaskApi } from './api';
+import type { KnowledgeTask } from './type';
+import { KnowledgeRevisionApi } from '@/views/knowledge_revision/api';
+import type { KnowledgeRevision, KnowledgeRevisionQuery } from '@/views/knowledge_revision/type';
+import type { KnowledgeTaskQuery } from './type';
+import { KnowledgeItemApi } from '@/views/knowledge_item/api';
+import { getRevisionStatusInfo } from '@/views/knowledge_revision/status';
 
+type QueueType = 'pending' | 'pending_task' | 'running' | 'failed' | 'success' | 'canceled';
 
-// 组件引用
+interface TaskRow extends Partial<KnowledgeTask> {
+  knowledgeName?: string;
+  revisionNo?: string;
+  revisionStatus?: string;
+  revisionId: number;
+  id?: number;
+  updateTime?: string;
+}
+
+const queueOptions: Array<{ label: string; value: QueueType }> = [
+  { label: '待处理', value: 'pending' },
+  { label: '待执行', value: 'pending_task' },
+  { label: '运行中', value: 'running' },
+  { label: '处理失败', value: 'failed' },
+  { label: '成功', value: 'success' },
+  { label: '已取消', value: 'canceled' },
+];
+
+const QUEUE_TASK_STATUS: Partial<Record<QueueType, string>> = {
+  pending_task: 'PENDING',
+  running: 'RUNNING',
+  failed: 'FAILED',
+  success: 'SUCCESS',
+  canceled: 'CANCELED',
+};
+
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
-
-// 基础查询表单（BaseSelectListDto）；用 ref 以匹配 QueryForm defineModel
-const baseQueryForm = ref<BaseSelectListDto>({
-  id: undefined,
-  createTime: undefined,
-  updateTime: undefined,
-  sorts: undefined,
-});
-
-// 业务查询状态
+const baseQueryForm = ref<BaseSelectListDto>({});
 const queryForm = reactive({
-  organId: undefined,
-  revisionId: undefined,
-  taskType: '',
-  taskStatus: '',
-  idempotencyKey: '',
-  inputSnapshot: '',
-  attemptNo: undefined,
-  availableTime: '',
-  leaseOwner: '',
-  leaseExpireTime: '',
-  leaseGeneration: undefined,
-  cancelRequested: undefined,
-  providerName: '',
-  modelName: '',
-  traceId: '',
-  startedTime: '',
-  finishedTime: '',
-  errorCode: '',
-  errorSummary: '',
+  queueType: 'pending' as QueueType,
+  knowledgeName: '',
+  revisionNo: '',
+});
+const pagination = reactive({ pageNum: 1, pageSize: 10, total: 0 });
+const loading = ref(false);
+const tableData = ref<TaskRow[]>([]);
+const detailVisible = ref(false);
+const detail = ref<TaskRow | null>(null);
+let pollTimer: ReturnType<typeof setInterval> | null = null;
+const itemNameCache = ref<Record<number, string>>({});
+const revisionCache = ref<Record<number, KnowledgeRevision>>({});
+
+const isPendingQueue = computed(() => queryForm.queueType === 'pending');
+
+const emptyText = computed(() => {
+  if (queryForm.queueType === 'pending') return '暂无待处理内容，可切换其他队列查看';
+  return '暂无数据';
 });
 
-// 分页相关状态
-const pagination = reactive({
-  pageNum: 1,
-  pageSize: 10,
-  total: 0,
-});
+const shouldPoll = computed(
+  () => queryForm.queueType === 'pending_task' || queryForm.queueType === 'running',
+);
 
-// 定义列表引用
-const tableData = ref<KnowledgeTask[]>([]);
+const formatDuration = (row: TaskRow) => {
+  if (!row.startedTime) return '-';
+  const start = Date.parse(row.startedTime.replace(/-/g, '/'));
+  const end = row.finishedTime ? Date.parse(row.finishedTime.replace(/-/g, '/')) : Date.now();
+  if (Number.isNaN(start) || Number.isNaN(end)) return '-';
+  const sec = Math.max(0, Math.round((end - start) / 1000));
+  if (sec < 60) return `${sec}s`;
+  return `${Math.floor(sec / 60)}m ${sec % 60}s`;
+};
 
-// 加载列表数据
+const resolveRevisionMeta = async (revisionId: number) => {
+  if (!revisionCache.value[revisionId]) {
+    revisionCache.value[revisionId] = await KnowledgeRevisionApi.getById(revisionId);
+  }
+  const revision = revisionCache.value[revisionId];
+  if (!itemNameCache.value[revision.knowledgeId]) {
+    try {
+      const item = await KnowledgeItemApi.getById(revision.knowledgeId);
+      itemNameCache.value[revision.knowledgeId] = item.knowledgeName;
+    } catch {
+      itemNameCache.value[revision.knowledgeId] = `#${revision.knowledgeId}`;
+    }
+  }
+  return {
+    knowledgeName: itemNameCache.value[revision.knowledgeId],
+    revisionNo: revision.revisionNo,
+    revisionStatus: revision.revisionStatus,
+  };
+};
+
+const applyClientFilters = (rows: TaskRow[]) => {
+  let list = rows;
+  const nameKw = queryForm.knowledgeName.trim().toLowerCase();
+  const noKw = queryForm.revisionNo.trim().toLowerCase();
+  if (nameKw) {
+    list = list.filter((r) => (r.knowledgeName || '').toLowerCase().includes(nameKw));
+  }
+  if (noKw && !isPendingQueue.value) {
+    list = list.filter((r) => (r.revisionNo || '').toLowerCase().includes(noKw));
+  }
+  return list;
+};
+
+const loadPending = async () => {
+  const knowledgeName = queryForm.knowledgeName;
+  const revisionNo = queryForm.revisionNo;
+  const query = compactQuery({
+    ...baseQueryForm.value,
+    revisionStatus: 'APPROVED',
+    revisionNo: revisionNo.trim() || undefined,
+  }) as KnowledgeRevisionQuery;
+
+  const pageData = await KnowledgeRevisionApi.page({
+    pageNum: pagination.pageNum,
+    pageSize: pagination.pageSize,
+    ...query,
+  } as PageSelectListDto & KnowledgeRevisionQuery);
+
+  let rows: TaskRow[] = await Promise.all(
+    pageData.records.map(async (r) => {
+      revisionCache.value[r.id] = r;
+      if (!itemNameCache.value[r.knowledgeId]) {
+        try {
+          itemNameCache.value[r.knowledgeId] = (await KnowledgeItemApi.getById(r.knowledgeId)).knowledgeName;
+        } catch {
+          itemNameCache.value[r.knowledgeId] = `#${r.knowledgeId}`;
+        }
+      }
+      return {
+        revisionId: r.id,
+        knowledgeName: itemNameCache.value[r.knowledgeId],
+        revisionNo: r.revisionNo,
+        revisionStatus: r.revisionStatus,
+        updateTime: r.updateTime,
+      } as TaskRow;
+    }),
+  );
+
+  if (knowledgeName.trim()) {
+    const kw = knowledgeName.trim().toLowerCase();
+    rows = rows.filter((r) => (r.knowledgeName || '').toLowerCase().includes(kw));
+  }
+
+  tableData.value = rows;
+  pagination.total = knowledgeName.trim() ? rows.length : pageData.total;
+};
+
+const loadTasks = async () => {
+  const taskStatus = QUEUE_TASK_STATUS[queryForm.queueType];
+  if (!taskStatus) return;
+
+  const query = compactQuery({
+    ...baseQueryForm.value,
+    taskStatus,
+  }) as KnowledgeTaskQuery;
+
+  const pageData = await KnowledgeTaskApi.page({
+    pageNum: pagination.pageNum,
+    pageSize: pagination.pageSize,
+    ...query,
+  } as PageSelectListDto & KnowledgeTaskQuery);
+
+  let rows: TaskRow[] = await Promise.all(
+    pageData.records.map(async (task) => {
+      const meta = await resolveRevisionMeta(task.revisionId);
+      return { ...task, ...meta };
+    }),
+  );
+
+  const filtered = applyClientFilters(rows);
+  tableData.value = filtered;
+  const clientFiltered =
+    Boolean(queryForm.knowledgeName.trim()) || Boolean(queryForm.revisionNo.trim());
+  pagination.total = clientFiltered ? filtered.length : pageData.total;
+};
+
 const loadData = async () => {
+  loading.value = true;
   try {
-    // 合并基础查询 + 业务查询，并过滤空值
-    const query = Object.fromEntries(
-      Object.entries({ ...baseQueryForm.value, ...queryForm })
-        .filter(([_, v]) => (v ?? '') !== '' && [v].flat().length)
-    ) as KnowledgeTaskQuery;
-
-    // 请求分页数据
-    const pageData = await KnowledgeTaskApi.page({
-      pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize,
-      ...query,
-    } as PageSelectListDto & KnowledgeTaskQuery);
-
-    // 设置响应结果
-    tableData.value = pageData.records;
-    pagination.total = pageData.total;
+    if (isPendingQueue.value) await loadPending();
+    else await loadTasks();
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : t('G2_MSG_LOAD_FAIL', '加载列表失败');
-    showErrorMessage(msg);
+    showErrorMessage(error instanceof Error ? error.message : '加载失败');
+  } finally {
+    loading.value = false;
   }
 };
 
-// 处理排序变化
-const handleSortChange = (params: Record<string, string>) => {
-  // 更新 QueryForm 的 sorts 字段
-  queryFormRef.value?.updateSorts(params);
+const stopPoll = () => {
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
 };
 
-// 查询
+const startPoll = () => {
+  stopPoll();
+  if (!shouldPoll.value) return;
+  pollTimer = setInterval(() => {
+    void loadData();
+  }, POLL_INTERVAL_MS);
+};
+
 const handleSearch = () => {
-  pagination.pageNum = 1; // 重置到第一页
-  loadData();
+  pagination.pageNum = 1;
+  void loadData().then(startPoll);
 };
 
-// 重置查询条件
 const handleReset = () => {
-  // 重置基础查询表单
-  baseQueryForm.value.id = undefined;
-  baseQueryForm.value.createTime = undefined;
-  baseQueryForm.value.updateTime = undefined;
-  baseQueryForm.value.sorts = undefined;
-  // 重置业务特定查询表单
-  queryForm.organId = undefined;
-  queryForm.revisionId = undefined;
-  queryForm.taskType = '';
-  queryForm.taskStatus = '';
-  queryForm.idempotencyKey = '';
-  queryForm.inputSnapshot = '';
-  queryForm.attemptNo = undefined;
-  queryForm.availableTime = '';
-  queryForm.leaseOwner = '';
-  queryForm.leaseExpireTime = '';
-  queryForm.leaseGeneration = undefined;
-  queryForm.cancelRequested = undefined;
-  queryForm.providerName = '';
-  queryForm.modelName = '';
-  queryForm.traceId = '';
-  queryForm.startedTime = '';
-  queryForm.finishedTime = '';
-  queryForm.errorCode = '';
-  queryForm.errorSummary = '';
-
-  pagination.pageNum = 1; // 重置到第一页
-  loadData();
+  queryForm.queueType = 'pending';
+  queryForm.knowledgeName = '';
+  queryForm.revisionNo = '';
+  baseQueryForm.value = {};
+  pagination.pageNum = 1;
+  void loadData().then(startPoll);
 };
 
-// 分页大小变化
 const handleSizeChange = (size: number) => {
   pagination.pageSize = size;
-  pagination.pageNum = 1; // 重置到第一页
-  loadData();
+  pagination.pageNum = 1;
+  void loadData();
 };
 
-// 页码变化
 const handlePageChange = (page: number) => {
   pagination.pageNum = page;
-  loadData();
+  void loadData();
 };
 
-// 当前记录引用
-const currentRow = ref<KnowledgeTask | null>(null);
-// 明细弹窗引用
-const detailDialogVisible = ref(false);
-
-// 查询数据明细
-const handleView = (row: KnowledgeTask) => {
-  currentRow.value = { ...row };
-  detailDialogVisible.value = true;
-};
-
-// 删除数据记录
-const handleDelete = (row: KnowledgeTask) => {
-  ElMessageBox.confirm(`确认删除知识解析与索引处理任务表「${row.id}」吗？`, t('G2_LBL_TIP', '提示'), {
-    type: 'warning',
-  })
-    .then(async () => {
-      try {
-        await KnowledgeTaskApi.remove(row.id);
-        // 如果当前页只有一条数据，删除后应该跳转到上一页
-        if (tableData.value.length === 1 && pagination.pageNum > 1) {
-          pagination.pageNum--;
-        }
-        await loadData();
-        ElMessage.success(t('G2_MSG_DELETE_OK', '删除成功'));
-      } catch (error: unknown) {
-        const msg = error instanceof Error ? error.message : t('G2_MSG_DELETE_FAIL', '删除失败');
-        showErrorMessage(msg);
-      }
-    })
-    .catch(() => {});
-};
-
-// 保存弹窗引用
-const editDialogVisible = ref(false);
-
-// 修改标记状态
-const isEdit = ref(false);
-
-// 修改组件引用
-const editFormRef = ref<FormInstance | null>(null);
-
-// 保存表单状态
-const editForm = reactive({
-  id: undefined as number | undefined,
-  organId: undefined as number | undefined,
-  revisionId: undefined as number | undefined,
-  taskType: '',
-  taskStatus: '',
-  idempotencyKey: '',
-  inputSnapshot: '',
-  attemptNo: undefined as number | undefined,
-  availableTime: '',
-  leaseOwner: '',
-  leaseExpireTime: '',
-  leaseGeneration: undefined as number | undefined,
-  cancelRequested: undefined as number | undefined,
-  providerName: '',
-  modelName: '',
-  traceId: '',
-  startedTime: '',
-  finishedTime: '',
-  errorCode: '',
-  errorSummary: '',
-});
-
-// 表单校验规则
-const editRules: FormRules = {
-  organId: [{ required: true, message: '请输入机构标识', trigger: 'blur' }],
-  revisionId: [{ required: true, message: '请输入知识版本标识', trigger: 'blur' }],
-  taskType: [{ required: true, message: '请输入知识处理任务类型[PARSE,INDEX,DELETE_INDEX]；不承载发布、回滚或下线', trigger: 'blur' }],
-  taskStatus: [{ required: true, message: '请输入任务状态[PENDING,RUNNING,SUCCESS,FAILED,CANCELED]', trigger: 'blur' }],
-  idempotencyKey: [{ required: true, message: '请输入幂等键', trigger: 'blur' }],
-  attemptNo: [{ required: true, message: '请输入尝试次数', trigger: 'blur' }],
-  availableTime: [{ required: true, message: '请输入任务可被领取时间，用于处理任务延迟重试', trigger: 'blur' }],
-  leaseGeneration: [{ required: true, message: '请输入任务租约 fencing 代次', trigger: 'blur' }],
-  cancelRequested: [{ required: true, message: '请输入运行中任务协作取消标识', trigger: 'blur' }],
-};
-
-// 打开创建弹窗
-const handleCreate = () => {
-  isEdit.value = false;
-  editFormRef.value?.clearValidate();
-
-  editForm.organId = undefined;
-  editForm.revisionId = undefined;
-  editForm.taskType = '';
-  editForm.taskStatus = '';
-  editForm.idempotencyKey = '';
-  editForm.inputSnapshot = '';
-  editForm.attemptNo = undefined;
-  editForm.availableTime = '';
-  editForm.leaseOwner = '';
-  editForm.leaseExpireTime = '';
-  editForm.leaseGeneration = undefined;
-  editForm.cancelRequested = undefined;
-  editForm.providerName = '';
-  editForm.modelName = '';
-  editForm.traceId = '';
-  editForm.startedTime = '';
-  editForm.finishedTime = '';
-  editForm.errorCode = '';
-  editForm.errorSummary = '';
-  editDialogVisible.value = true;
-};
-
-// 打开修改弹窗
-const handleEdit = (row: KnowledgeTask) => {
-  isEdit.value = true;
-  editFormRef.value?.clearValidate();
-
-  editForm.id = row.id;
-  editForm.organId = row.organId;
-  editForm.revisionId = row.revisionId;
-  editForm.taskType = row.taskType;
-  editForm.taskStatus = row.taskStatus;
-  editForm.idempotencyKey = row.idempotencyKey;
-  editForm.inputSnapshot = row.inputSnapshot;
-  editForm.attemptNo = row.attemptNo;
-  editForm.availableTime = row.availableTime;
-  editForm.leaseOwner = row.leaseOwner;
-  editForm.leaseExpireTime = row.leaseExpireTime;
-  editForm.leaseGeneration = row.leaseGeneration;
-  editForm.cancelRequested = row.cancelRequested;
-  editForm.providerName = row.providerName;
-  editForm.modelName = row.modelName;
-  editForm.traceId = row.traceId;
-  editForm.startedTime = row.startedTime;
-  editForm.finishedTime = row.finishedTime;
-  editForm.errorCode = row.errorCode;
-  editForm.errorSummary = row.errorSummary;
-  editDialogVisible.value = true;
-};
-
-// 提交数据表单
-const submitEdit = async () => {
-  if (!editFormRef.value) return;
-  const valid = await editFormRef.value.validate();
-  if (!valid) return;
-
-  const payload: KnowledgeTaskPayload = {
-    organId: editForm.organId,
-    revisionId: editForm.revisionId,
-    taskType: editForm.taskType,
-    taskStatus: editForm.taskStatus,
-    idempotencyKey: editForm.idempotencyKey,
-    inputSnapshot: editForm.inputSnapshot,
-    attemptNo: editForm.attemptNo,
-    availableTime: editForm.availableTime,
-    leaseOwner: editForm.leaseOwner,
-    leaseExpireTime: editForm.leaseExpireTime,
-    leaseGeneration: editForm.leaseGeneration,
-    cancelRequested: editForm.cancelRequested,
-    providerName: editForm.providerName,
-    modelName: editForm.modelName,
-    traceId: editForm.traceId,
-    startedTime: editForm.startedTime,
-    finishedTime: editForm.finishedTime,
-    errorCode: editForm.errorCode,
-    errorSummary: editForm.errorSummary,
-  };
-
+const startProcess = async (row: TaskRow) => {
   try {
-    // 编辑模式下，将 id 添加到 payload 中
-    if (isEdit.value) {
-      payload.id = editForm.id;
-    }
-    await KnowledgeTaskApi.save(payload);
-    ElMessage.success(isEdit.value ? t('G2_MSG_UPDATE_OK', '更新成功') : t('G2_MSG_ADD_OK', '新增成功'));
+    await ElMessageBox.confirm(`确认开始处理版本「${row.revisionNo}」？`, '开始处理', { type: 'warning' });
+    await KnowledgeTaskApi.startProcess(row.revisionId);
+    ElMessage.success('已开始处理，可在「待执行 / 运行中」查看进度');
     await loadData();
-    editDialogVisible.value = false;
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : t('G2_MSG_SAVE_FAIL', '保存失败');
-    showErrorMessage(msg);
+    if (error === 'cancel' || error === 'close') return;
+    showErrorMessage(error instanceof Error ? error.message : '开始处理失败');
   }
 };
 
-// 挂载回调
-onMounted(() => {
-  // 查询列表
-  loadData();
+const retryTask = async (row: TaskRow) => {
+  if (!row.id || row.version == null) return;
+  try {
+    await KnowledgeTaskApi.retry({ taskId: row.id, expectedVersion: row.version });
+    ElMessage.success('已提交重试');
+    queryForm.queueType = 'pending_task';
+    pagination.pageNum = 1;
+    await loadData();
+    startPoll();
+  } catch (error: unknown) {
+    showErrorMessage(error instanceof Error ? error.message : '重试失败');
+  }
+};
+
+const cancelTask = async (row: TaskRow) => {
+  if (!row.id || row.version == null) return;
+  try {
+    await ElMessageBox.confirm('确认取消该待执行任务？', '取消任务', { type: 'warning' });
+    await KnowledgeTaskApi.cancel({ taskId: row.id, expectedVersion: row.version });
+    const revision = await KnowledgeRevisionApi.getById(row.revisionId);
+    ElMessage.success(`任务已取消。当前版本状态：${getRevisionStatusInfo(revision.revisionStatus).label}`);
+    await loadData();
+  } catch (error: unknown) {
+    if (error === 'cancel' || error === 'close') return;
+    showErrorMessage(error instanceof Error ? error.message : '取消失败');
+  }
+};
+
+const openDetail = async (row: TaskRow) => {
+  detail.value = row;
+  if (row.revisionId) {
+    try {
+      const revision = await KnowledgeRevisionApi.getById(row.revisionId);
+      detail.value = { ...row, revisionStatus: revision.revisionStatus };
+      if (revision.revisionStatus === 'READY_TO_PUBLISH' && row.taskStatus === 'SUCCESS') {
+        ElMessage.success('处理完成，可在发布管理发布');
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  detailVisible.value = true;
+};
+
+watch(
+  () => queryForm.queueType,
+  () => startPoll(),
+);
+
+onMounted(async () => {
+  await loadData();
+  startPoll();
 });
+
+onBeforeUnmount(() => stopPoll());
 </script>
 
 <style scoped>
@@ -565,48 +427,29 @@ onMounted(() => {
   padding: 20px;
   background-color: var(--g2-bg-page);
   min-height: 100%;
-  height: 100%;
   box-sizing: border-box;
 }
-
-.knowledge_task-page__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  margin-top: 0;
-  padding: 16px 20px;
-  background-color: var(--g2-bg-container);
-  border-radius: 4px;
-}
-
-.knowledge_task-page__title-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.knowledge_task-page__header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
 .knowledge_task-page__search {
   margin-bottom: 12px;
   background-color: var(--g2-bg-container);
 }
-
+.knowledge_task-page__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 16px 20px;
+  background-color: var(--g2-bg-container);
+  border-radius: 4px;
+}
+.knowledge_task-page__header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
 .knowledge_task-page__pagination {
   display: flex;
   justify-content: flex-end;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 </style>
