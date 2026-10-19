@@ -1,6 +1,14 @@
 [
   {
     "parentId": null,
+    "pageElementName": "answer' : 'knowledge_search:retrieve",
+    "pageElementCode": "activeTab === 'answer' ? 'knowledge_search:answer' : 'knowledge_search:retrieve",
+    "pageElementType": "button",
+    "pageCode": "knowledge_search",
+    "status": "ENABLED"
+  },
+  {
+    "parentId": null,
     "pageElementName": "新增",
     "pageElementCode": "knowledge_answer_template:add",
     "pageElementType": "button",
@@ -65,87 +73,7 @@
   },
   {
     "parentId": null,
-    "pageElementName": "新增版本",
-    "pageElementCode": "knowledge_revision:add",
-    "pageElementType": "button",
-    "pageCode": "knowledge_item",
-    "status": "ENABLED"
-  },
-  {
-    "parentId": null,
-    "pageElementName": "编辑版本",
-    "pageElementCode": "knowledge_revision:edit",
-    "pageElementType": "button",
-    "pageCode": "knowledge_item",
-    "status": "ENABLED"
-  },
-  {
-    "parentId": null,
-    "pageElementName": "提交审核",
-    "pageElementCode": "knowledge_revision:submit-review",
-    "pageElementType": "button",
-    "pageCode": "knowledge_item",
-    "status": "ENABLED"
-  },
-  {
-    "parentId": null,
-    "pageElementName": "替换文件",
-    "pageElementCode": "knowledge_revision:replace-file",
-    "pageElementType": "button",
-    "pageCode": "knowledge_item",
-    "status": "ENABLED"
-  },
-  {
-    "parentId": null,
-    "pageElementName": "下载原文",
-    "pageElementCode": "knowledge_revision:download-source",
-    "pageElementType": "button",
-    "pageCode": "knowledge_review",
-    "status": "ENABLED"
-  },
-  {
-    "parentId": null,
-    "pageElementName": "审核通过",
-    "pageElementCode": "knowledge_revision:review-approve",
-    "pageElementType": "button",
-    "pageCode": "knowledge_review",
-    "status": "ENABLED"
-  },
-  {
-    "parentId": null,
-    "pageElementName": "审核驳回",
-    "pageElementCode": "knowledge_revision:review-reject",
-    "pageElementType": "button",
-    "pageCode": "knowledge_review",
-    "status": "ENABLED"
-  },
-  {
-    "parentId": null,
-    "pageElementName": "开始处理",
-    "pageElementCode": "knowledge_task:process",
-    "pageElementType": "button",
-    "pageCode": "knowledge_task",
-    "status": "ENABLED"
-  },
-  {
-    "parentId": null,
-    "pageElementName": "重试",
-    "pageElementCode": "knowledge_task:retry",
-    "pageElementType": "button",
-    "pageCode": "knowledge_task",
-    "status": "ENABLED"
-  },
-  {
-    "parentId": null,
-    "pageElementName": "取消",
-    "pageElementCode": "knowledge_task:cancel",
-    "pageElementType": "button",
-    "pageCode": "knowledge_task",
-    "status": "ENABLED"
-  },
-  {
-    "parentId": null,
-    "pageElementName": "发布",
+    "pageElementName": "publish",
     "pageElementCode": "knowledge_release:publish",
     "pageElementType": "button",
     "pageCode": "knowledge_release",
@@ -153,7 +81,7 @@
   },
   {
     "parentId": null,
-    "pageElementName": "回滚",
+    "pageElementName": "rollback",
     "pageElementCode": "knowledge_release:rollback",
     "pageElementType": "button",
     "pageCode": "knowledge_release",
@@ -161,18 +89,50 @@
   },
   {
     "parentId": null,
-    "pageElementName": "检索",
-    "pageElementCode": "knowledge_search:retrieve",
+    "pageElementName": "新增",
+    "pageElementCode": "knowledge_revision:add",
     "pageElementType": "button",
-    "pageCode": "knowledge_search",
+    "pageCode": "knowledge_item",
     "status": "ENABLED"
   },
   {
     "parentId": null,
-    "pageElementName": "问答",
-    "pageElementCode": "knowledge_search:answer",
+    "pageElementName": "download-source",
+    "pageElementCode": "knowledge_revision:download-source",
     "pageElementType": "button",
-    "pageCode": "knowledge_search",
+    "pageCode": "knowledge_review",
+    "status": "ENABLED"
+  },
+  {
+    "parentId": null,
+    "pageElementName": "编辑",
+    "pageElementCode": "knowledge_revision:edit",
+    "pageElementType": "button",
+    "pageCode": "knowledge_revision",
+    "status": "ENABLED"
+  },
+  {
+    "parentId": null,
+    "pageElementName": "review-approve",
+    "pageElementCode": "knowledge_revision:review-approve",
+    "pageElementType": "button",
+    "pageCode": "knowledge_review",
+    "status": "ENABLED"
+  },
+  {
+    "parentId": null,
+    "pageElementName": "review-reject",
+    "pageElementCode": "knowledge_revision:review-reject",
+    "pageElementType": "button",
+    "pageCode": "knowledge_review",
+    "status": "ENABLED"
+  },
+  {
+    "parentId": null,
+    "pageElementName": "submit-review",
+    "pageElementCode": "knowledge_revision:submit-review",
+    "pageElementType": "button",
+    "pageCode": "knowledge_revision",
     "status": "ENABLED"
   },
   {
@@ -197,6 +157,30 @@
     "pageElementCode": "knowledge_tag:edit",
     "pageElementType": "button",
     "pageCode": "knowledge_tag",
+    "status": "ENABLED"
+  },
+  {
+    "parentId": null,
+    "pageElementName": "取消",
+    "pageElementCode": "knowledge_task:cancel",
+    "pageElementType": "button",
+    "pageCode": "knowledge_task",
+    "status": "ENABLED"
+  },
+  {
+    "parentId": null,
+    "pageElementName": "process",
+    "pageElementCode": "knowledge_task:process",
+    "pageElementType": "button",
+    "pageCode": "knowledge_task",
+    "status": "ENABLED"
+  },
+  {
+    "parentId": null,
+    "pageElementName": "retry",
+    "pageElementCode": "knowledge_task:retry",
+    "pageElementType": "button",
+    "pageCode": "knowledge_task",
     "status": "ENABLED"
   }
 ]
