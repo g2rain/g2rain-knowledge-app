@@ -170,8 +170,8 @@ stateDiagram-v2
 
 调用接口：
 
-- `POST /knowledge/retrieve`
-- `POST /knowledge/answer`
+- `POST /knowledge/knowledge/retrieve`
+- `POST /knowledge/knowledge/answer`
 
 `/answer` 在检索、重排序后按 `templateCode` 取得启用模板，再调用模型。模板编码不是模型名称。无证据时显示服务端返回的不可回答结果，不在浏览器中补造答案。
 

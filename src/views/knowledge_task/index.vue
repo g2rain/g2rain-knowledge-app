@@ -1,35 +1,41 @@
 <template>
   <div class="knowledge_task-page">
     <el-card class="knowledge_task-page__search" shadow="never">
-      <el-form :inline="true" @submit.prevent>
+      <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
+        <el-form-item label="队列类型">
+          <el-select v-model="queryForm.queueType" style="width: 160px" @change="handleSearch">
+            <el-option
+              v-for="opt in queueOptions"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="知识名称">
-          <el-input v-model="filters.knowledgeName" placeholder="知识名称" clearable style="width: 180px" />
+          <el-input v-model="queryForm.knowledgeName" placeholder="知识名称" clearable style="width: 180px" />
         </el-form-item>
         <el-form-item label="版本号">
-          <el-input v-model="filters.revisionNo" placeholder="版本号" clearable style="width: 140px" />
+          <el-input v-model="queryForm.revisionNo" placeholder="版本号" clearable style="width: 140px" />
         </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="reload">查询</el-button>
-          <el-button @click="resetFilters">重置</el-button>
-        </el-form-item>
-      </el-form>
+        <template #actions>
+          <el-form-item>
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </el-form-item>
+        </template>
+      </QueryForm>
     </el-card>
 
     <div class="knowledge_task-page__header">
       <h2>知识处理</h2>
+      <el-tag type="info">默认待处理队列</el-tag>
     </div>
 
-    <el-tabs v-model="activeTab" @tab-change="onTabChange">
-      <el-tab-pane label="待处理" name="pending" />
-      <el-tab-pane label="处理中" name="running" />
-      <el-tab-pane label="处理失败" name="failed" />
-      <el-tab-pane label="已完成" name="done" />
-    </el-tabs>
-
-    <el-table v-loading="loading" :data="displayRows" border stripe>
+    <el-table v-loading="loading" :data="tableData" border stripe style="width: 100%">
       <el-table-column prop="knowledgeName" label="知识名称" min-width="160" show-overflow-tooltip />
       <el-table-column prop="revisionNo" label="版本号" width="110" />
-      <template v-if="activeTab === 'pending'">
+      <template v-if="isPendingQueue">
         <el-table-column prop="revisionStatus" label="版本状态" width="120">
           <template #default="{ row }">{{ getRevisionStatusInfo(row.revisionStatus).label }}</template>
         </el-table-column>
@@ -76,7 +82,19 @@
         </el-table-column>
       </template>
     </el-table>
-    <el-empty v-if="!loading && !displayRows.length" :description="emptyText" :image-size="80" />
+    <el-empty v-if="!loading && !tableData.length" :description="emptyText" :image-size="80" />
+
+    <div class="knowledge_task-page__pagination">
+      <el-pagination
+        v-model:current-page="pagination.pageNum"
+        v-model:page-size="pagination.pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        :total="pagination.total"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handleSizeChange"
+        @current-change="handlePageChange"
+      />
+    </div>
 
     <el-drawer v-model="detailVisible" title="任务详情" :size="OVERLAY_SIZE.drawer" destroy-on-close>
       <el-descriptions v-if="detail" :column="1" border>
@@ -84,7 +102,9 @@
         <el-descriptions-item label="版本号">{{ detail.revisionNo }}</el-descriptions-item>
         <el-descriptions-item label="任务类型">{{ detail.taskType }}</el-descriptions-item>
         <el-descriptions-item label="任务状态">{{ detail.taskStatus }}</el-descriptions-item>
-        <el-descriptions-item label="版本状态">{{ getRevisionStatusInfo(detail.revisionStatus).label }}</el-descriptions-item>
+        <el-descriptions-item label="版本状态">
+          {{ getRevisionStatusInfo(detail.revisionStatus).label }}
+        </el-descriptions-item>
         <el-descriptions-item label="尝试次数">{{ detail.attemptNo }}</el-descriptions-item>
         <el-descriptions-item label="耗时">{{ formatDuration(detail) }}</el-descriptions-item>
         <el-descriptions-item label="错误码">{{ detail.errorCode || '-' }}</el-descriptions-item>
@@ -97,16 +117,20 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { QueryForm } from '@g2rain/ui';
+import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { showErrorMessage } from '@/components';
+import { compactQuery } from '@shared/knowledge/entity';
 import { OVERLAY_SIZE, POLL_INTERVAL_MS } from '@shared/knowledge/overlay';
 import { KnowledgeTaskApi } from './api';
 import type { KnowledgeTask } from './type';
 import { KnowledgeRevisionApi } from '@/views/knowledge_revision/api';
-import type { KnowledgeRevision } from '@/views/knowledge_revision/type';
+import type { KnowledgeRevision, KnowledgeRevisionQuery } from '@/views/knowledge_revision/type';
+import type { KnowledgeTaskQuery } from './type';
 import { KnowledgeItemApi } from '@/views/knowledge_item/api';
 import { getRevisionStatusInfo } from '@/views/knowledge_revision/status';
 
-type TabKey = 'pending' | 'running' | 'failed' | 'done';
+type QueueType = 'pending' | 'pending_task' | 'running' | 'failed' | 'success' | 'canceled';
 
 interface TaskRow extends Partial<KnowledgeTask> {
   knowledgeName?: string;
@@ -114,35 +138,52 @@ interface TaskRow extends Partial<KnowledgeTask> {
   revisionStatus?: string;
   revisionId: number;
   id?: number;
+  updateTime?: string;
 }
 
-const activeTab = ref<TabKey>('pending');
+const queueOptions: Array<{ label: string; value: QueueType }> = [
+  { label: '待处理', value: 'pending' },
+  { label: '待执行', value: 'pending_task' },
+  { label: '运行中', value: 'running' },
+  { label: '处理失败', value: 'failed' },
+  { label: '成功', value: 'success' },
+  { label: '已取消', value: 'canceled' },
+];
+
+const QUEUE_TASK_STATUS: Partial<Record<QueueType, string>> = {
+  pending_task: 'PENDING',
+  running: 'RUNNING',
+  failed: 'FAILED',
+  success: 'SUCCESS',
+  canceled: 'CANCELED',
+};
+
+const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
+const baseQueryForm = ref<BaseSelectListDto>({});
+const queryForm = reactive({
+  queueType: 'pending' as QueueType,
+  knowledgeName: '',
+  revisionNo: '',
+});
+const pagination = reactive({ pageNum: 1, pageSize: 10, total: 0 });
 const loading = ref(false);
-const rows = ref<TaskRow[]>([]);
-const filters = reactive({ knowledgeName: '', revisionNo: '' });
+const tableData = ref<TaskRow[]>([]);
 const detailVisible = ref(false);
 const detail = ref<TaskRow | null>(null);
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 const itemNameCache = ref<Record<number, string>>({});
 const revisionCache = ref<Record<number, KnowledgeRevision>>({});
 
+const isPendingQueue = computed(() => queryForm.queueType === 'pending');
+
 const emptyText = computed(() => {
-  if (activeTab.value === 'pending') return '暂无待处理内容，可切换其他状态查看';
+  if (queryForm.queueType === 'pending') return '暂无待处理内容，可切换其他队列查看';
   return '暂无数据';
 });
 
-const displayRows = computed(() => {
-  let list = rows.value;
-  if (filters.knowledgeName.trim()) {
-    const kw = filters.knowledgeName.trim().toLowerCase();
-    list = list.filter((r) => (r.knowledgeName || '').toLowerCase().includes(kw));
-  }
-  if (filters.revisionNo.trim()) {
-    const kw = filters.revisionNo.trim().toLowerCase();
-    list = list.filter((r) => (r.revisionNo || '').toLowerCase().includes(kw));
-  }
-  return list;
-});
+const shouldPoll = computed(
+  () => queryForm.queueType === 'pending_task' || queryForm.queueType === 'running',
+);
 
 const formatDuration = (row: TaskRow) => {
   if (!row.startedTime) return '-';
@@ -174,10 +215,36 @@ const resolveRevisionMeta = async (revisionId: number) => {
   };
 };
 
+const applyClientFilters = (rows: TaskRow[]) => {
+  let list = rows;
+  const nameKw = queryForm.knowledgeName.trim().toLowerCase();
+  const noKw = queryForm.revisionNo.trim().toLowerCase();
+  if (nameKw) {
+    list = list.filter((r) => (r.knowledgeName || '').toLowerCase().includes(nameKw));
+  }
+  if (noKw && !isPendingQueue.value) {
+    list = list.filter((r) => (r.revisionNo || '').toLowerCase().includes(noKw));
+  }
+  return list;
+};
+
 const loadPending = async () => {
-  const revisions = await KnowledgeRevisionApi.list({ revisionStatus: 'APPROVED' });
-  rows.value = await Promise.all(
-    revisions.map(async (r) => {
+  const knowledgeName = queryForm.knowledgeName;
+  const revisionNo = queryForm.revisionNo;
+  const query = compactQuery({
+    ...baseQueryForm.value,
+    revisionStatus: 'APPROVED',
+    revisionNo: revisionNo.trim() || undefined,
+  }) as KnowledgeRevisionQuery;
+
+  const pageData = await KnowledgeRevisionApi.page({
+    pageNum: pagination.pageNum,
+    pageSize: pagination.pageSize,
+    ...query,
+  } as PageSelectListDto & KnowledgeRevisionQuery);
+
+  let rows: TaskRow[] = await Promise.all(
+    pageData.records.map(async (r) => {
       revisionCache.value[r.id] = r;
       if (!itemNameCache.value[r.knowledgeId]) {
         try {
@@ -195,26 +262,50 @@ const loadPending = async () => {
       } as TaskRow;
     }),
   );
+
+  if (knowledgeName.trim()) {
+    const kw = knowledgeName.trim().toLowerCase();
+    rows = rows.filter((r) => (r.knowledgeName || '').toLowerCase().includes(kw));
+  }
+
+  tableData.value = rows;
+  pagination.total = knowledgeName.trim() ? rows.length : pageData.total;
 };
 
-const loadTasks = async (statuses: string[]) => {
-  const tasks = await KnowledgeTaskApi.list({});
-  const filtered = tasks.filter((t) => statuses.includes(t.taskStatus));
-  rows.value = await Promise.all(
-    filtered.map(async (task) => {
+const loadTasks = async () => {
+  const taskStatus = QUEUE_TASK_STATUS[queryForm.queueType];
+  if (!taskStatus) return;
+
+  const query = compactQuery({
+    ...baseQueryForm.value,
+    taskStatus,
+  }) as KnowledgeTaskQuery;
+
+  const pageData = await KnowledgeTaskApi.page({
+    pageNum: pagination.pageNum,
+    pageSize: pagination.pageSize,
+    ...query,
+  } as PageSelectListDto & KnowledgeTaskQuery);
+
+  let rows: TaskRow[] = await Promise.all(
+    pageData.records.map(async (task) => {
       const meta = await resolveRevisionMeta(task.revisionId);
       return { ...task, ...meta };
     }),
   );
+
+  const filtered = applyClientFilters(rows);
+  tableData.value = filtered;
+  const clientFiltered =
+    Boolean(queryForm.knowledgeName.trim()) || Boolean(queryForm.revisionNo.trim());
+  pagination.total = clientFiltered ? filtered.length : pageData.total;
 };
 
 const loadData = async () => {
   loading.value = true;
   try {
-    if (activeTab.value === 'pending') await loadPending();
-    else if (activeTab.value === 'running') await loadTasks(['PENDING', 'RUNNING']);
-    else if (activeTab.value === 'failed') await loadTasks(['FAILED']);
-    else await loadTasks(['SUCCESS', 'CANCELED']);
+    if (isPendingQueue.value) await loadPending();
+    else await loadTasks();
   } catch (error: unknown) {
     showErrorMessage(error instanceof Error ? error.message : '加载失败');
   } finally {
@@ -231,28 +322,42 @@ const stopPoll = () => {
 
 const startPoll = () => {
   stopPoll();
-  if (activeTab.value !== 'running') return;
+  if (!shouldPoll.value) return;
   pollTimer = setInterval(() => {
     void loadData();
   }, POLL_INTERVAL_MS);
 };
 
-const onTabChange = () => {
+const handleSearch = () => {
+  pagination.pageNum = 1;
   void loadData().then(startPoll);
 };
 
-const reload = () => void loadData();
-const resetFilters = () => {
-  filters.knowledgeName = '';
-  filters.revisionNo = '';
-  reload();
+const handleReset = () => {
+  queryForm.queueType = 'pending';
+  queryForm.knowledgeName = '';
+  queryForm.revisionNo = '';
+  baseQueryForm.value = {};
+  pagination.pageNum = 1;
+  void loadData().then(startPoll);
+};
+
+const handleSizeChange = (size: number) => {
+  pagination.pageSize = size;
+  pagination.pageNum = 1;
+  void loadData();
+};
+
+const handlePageChange = (page: number) => {
+  pagination.pageNum = page;
+  void loadData();
 };
 
 const startProcess = async (row: TaskRow) => {
   try {
     await ElMessageBox.confirm(`确认开始处理版本「${row.revisionNo}」？`, '开始处理', { type: 'warning' });
     await KnowledgeTaskApi.startProcess(row.revisionId);
-    ElMessage.success('已开始处理，可在「处理中」查看进度');
+    ElMessage.success('已开始处理，可在「待执行 / 运行中」查看进度');
     await loadData();
   } catch (error: unknown) {
     if (error === 'cancel' || error === 'close') return;
@@ -265,7 +370,8 @@ const retryTask = async (row: TaskRow) => {
   try {
     await KnowledgeTaskApi.retry({ taskId: row.id, expectedVersion: row.version });
     ElMessage.success('已提交重试');
-    activeTab.value = 'running';
+    queryForm.queueType = 'pending_task';
+    pagination.pageNum = 1;
     await loadData();
     startPoll();
   } catch (error: unknown) {
@@ -303,7 +409,10 @@ const openDetail = async (row: TaskRow) => {
   detailVisible.value = true;
 };
 
-watch(activeTab, () => startPoll());
+watch(
+  () => queryForm.queueType,
+  () => startPoll(),
+);
 
 onMounted(async () => {
   await loadData();
@@ -318,7 +427,6 @@ onBeforeUnmount(() => stopPoll());
   padding: 20px;
   background-color: var(--g2-bg-page);
   min-height: 100%;
-  height: 100%;
   box-sizing: border-box;
 }
 .knowledge_task-page__search {
@@ -328,7 +436,7 @@ onBeforeUnmount(() => stopPoll());
 .knowledge_task-page__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
   padding: 16px 20px;
   background-color: var(--g2-bg-container);
@@ -338,5 +446,10 @@ onBeforeUnmount(() => stopPoll());
   margin: 0;
   font-size: 18px;
   font-weight: 600;
+}
+.knowledge_task-page__pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 </style>

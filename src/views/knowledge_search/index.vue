@@ -63,9 +63,19 @@
 
         <el-form-item>
           <el-button
+            v-if="activeTab === 'answer'"
             type="primary"
             :loading="loading"
-            v-permission="activeTab === 'answer' ? 'knowledge_search:answer' : 'knowledge_search:retrieve'"
+            v-permission="'knowledge_search:answer'"
+            @click="runVerify"
+          >
+            开始验证
+          </el-button>
+          <el-button
+            v-else
+            type="primary"
+            :loading="loading"
+            v-permission="'knowledge_search:retrieve'"
             @click="runVerify"
           >
             开始验证

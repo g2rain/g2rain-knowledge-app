@@ -19,22 +19,22 @@ export const REVISION_STATUS_MAP: Record<string, RevisionStatusInfo> = {
   APPROVED: {
     label: '待处理',
     nextStep: '审核已通过，等待开始处理',
-    menuHint: '知识处理 → 待处理',
+    menuHint: '知识处理（队列=待处理）',
   },
   PROCESSING: {
     label: '处理中',
     nextStep: '跟进进度',
-    menuHint: '知识处理 → 处理中',
+    menuHint: '知识处理（队列=待执行 / 运行中）',
   },
   PROCESS_FAILED: {
     label: '处理失败',
     nextStep: '查看原因并重试关联任务',
-    menuHint: '知识处理 → 处理失败',
+    menuHint: '知识处理（队列=处理失败）',
   },
   READY_TO_PUBLISH: {
     label: '待发布',
     nextStep: '确认后发布',
-    menuHint: '发布管理 → 待发布',
+    menuHint: '发布管理（视图=待发布）',
   },
   PUBLISHED: {
     label: '已发布',
@@ -49,22 +49,22 @@ export const REVISION_STATUS_MAP: Record<string, RevisionStatusInfo> = {
   PARSING: {
     label: '处理中',
     nextStep: '跟进解析进度',
-    menuHint: '知识处理 → 处理中',
+    menuHint: '知识处理（队列=待执行 / 运行中）',
   },
   PARSE_FAILED: {
     label: '处理失败',
     nextStep: '查看解析失败原因',
-    menuHint: '知识处理 → 处理失败',
+    menuHint: '知识处理（队列=处理失败）',
   },
   INDEXING: {
     label: '处理中',
     nextStep: '跟进索引进度',
-    menuHint: '知识处理 → 处理中',
+    menuHint: '知识处理（队列=待执行 / 运行中）',
   },
   INDEX_FAILED: {
     label: '处理失败',
     nextStep: '查看索引失败原因',
-    menuHint: '知识处理 → 处理失败',
+    menuHint: '知识处理（队列=处理失败）',
   },
   REJECTED: {
     label: '草稿',

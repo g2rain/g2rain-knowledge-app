@@ -13,13 +13,13 @@ import type {
 export class KnowledgeSearchApi {
   static async retrieve(payload: KnowledgeRetrievePayload): Promise<KnowledgeRetrieveResult> {
     const http = getHttpClient('default');
-    const res = await http.post<KnowledgeRetrieveResult>('/knowledge/retrieve', payload);
+    const res = await http.post<KnowledgeRetrieveResult>('/knowledge/knowledge/retrieve', payload);
     return res.data;
   }
 
   static async answer(payload: KnowledgeAnswerPayload): Promise<KnowledgeAnswerResult> {
     const http = getHttpClient('default');
-    const res = await http.post<KnowledgeAnswerResult>('/knowledge/answer', payload);
+    const res = await http.post<KnowledgeAnswerResult>('/knowledge/knowledge/answer', payload);
     return res.data;
   }
 }

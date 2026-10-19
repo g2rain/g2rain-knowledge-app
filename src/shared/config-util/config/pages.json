@@ -38,5 +38,15 @@
     "pageName": "回复模板",
     "pageCode": "knowledge_answer_template",
     "linkPath": "/knowledge_answer_template"
+  },
+  {
+    "pageName": "版本管理（已迁移）",
+    "pageCode": "knowledge_revision",
+    "linkPath": "/knowledge_revision"
+  },
+  {
+    "pageName": "切片清单（已迁移）",
+    "pageCode": "knowledge_chunk",
+    "linkPath": "/knowledge_chunk"
   }
 ]
