@@ -105,7 +105,7 @@ generators:
     apiEndpointGeneration: false
 
 community:
-  website: https://www.g2rain.com
+  website: http://www.g2rain.com
   issues: https://github.com/g2rain/g2rain/issues
   discussions: https://github.com/g2rain/g2rain/discussions
   security: https://github.com/g2rain/g2rain/security/advisories/new

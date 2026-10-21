@@ -6,7 +6,7 @@
 
 谷雨 G2rain 开源 AI Native SaaS 平台的知识库运营前端，将知识内容、版本、审核、处理、发布和效果验证组织为运营流程。
 
-[平台总入口](https://github.com/g2rain/g2rain) · [配套知识服务](https://github.com/g2rain/g2rain-knowledge) · [完整文档](docs/index.md) · [v1.0.0 发布说明](docs/releases/v1.0.0.md) · [Issues](https://github.com/g2rain/g2rain-knowledge-app/issues)
+[官网](http://www.g2rain.com) · [平台总入口](https://github.com/g2rain/g2rain) · [配套知识服务](https://github.com/g2rain/g2rain-knowledge) · [完整文档](docs/index.md) · [v1.0.0 发布说明](docs/releases/v1.0.0.md) · [Issues](https://github.com/g2rain/g2rain-knowledge-app/issues)
 
 ## 当前版本
 
@@ -81,6 +81,6 @@ npm run build
 
 ## 联系与许可证
 
-[g2rain_developer@163.com](mailto:g2rain_developer@163.com) · [组织交流](https://github.com/g2rain/g2rain/discussions)
+[官网](http://www.g2rain.com) · [g2rain_developer@163.com](mailto:g2rain_developer@163.com) · [组织交流](https://github.com/g2rain/g2rain/discussions)
 
 本项目采用 [Apache License 2.0](LICENSE)。欢迎 Star [G2rain 主仓库](https://github.com/g2rain/g2rain)关注平台方向。

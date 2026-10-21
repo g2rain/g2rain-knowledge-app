@@ -366,7 +366,10 @@ const startProcess = async (row: TaskRow) => {
 };
 
 const retryTask = async (row: TaskRow) => {
-  if (!row.id || row.version == null) return;
+  if (!row.id || row.version == null) {
+    showErrorMessage('缺少任务版本，请刷新列表后重试');
+    return;
+  }
   try {
     await KnowledgeTaskApi.retry({ taskId: row.id, expectedVersion: row.version });
     ElMessage.success('已提交重试');
@@ -380,7 +383,10 @@ const retryTask = async (row: TaskRow) => {
 };
 
 const cancelTask = async (row: TaskRow) => {
-  if (!row.id || row.version == null) return;
+  if (!row.id || row.version == null) {
+    showErrorMessage('缺少任务版本，请刷新列表后重试');
+    return;
+  }
   try {
     await ElMessageBox.confirm('确认取消该待执行任务？', '取消任务', { type: 'warning' });
     await KnowledgeTaskApi.cancel({ taskId: row.id, expectedVersion: row.version });
