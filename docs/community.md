@@ -4,7 +4,7 @@
 
 ## GitHub
 
-- 官网：[https://www.g2rain.com](https://www.g2rain.com)
+- 官网：[http://www.g2rain.com](http://www.g2rain.com)
 - Issues：[GitHub Issues](https://github.com/g2rain/g2rain/issues)
 - 讨论：[GitHub Discussions](https://github.com/g2rain/g2rain/discussions)
 - 安全漏洞：[GitHub Security Advisories](https://github.com/g2rain/g2rain/security/advisories/new)

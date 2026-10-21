@@ -15,7 +15,7 @@
 
 HTTP 公共内核直接使用 `@g2rain/http`。应用专属的 Client 注册表、Mock、IAM Key、Loading 组合和刷新协调位于 `src/runtime/http`；页面从 `@runtime/http` 获取 Client，不再存在 `src/components/http` 兼容层。装配入口为 `runtime/http/setup.ts` 的 `initHttp()`。
 
-代码生成 / 资源配置：`create-g2rain-app`（`file:../g2rain-app-cli`）；本仓仅保留 `scripts/database.sql` 与 `config-util/config` 产物。
+代码生成 / 资源配置：已发布的 `create-g2rain-app@1.0.0`；本仓仅保留 `scripts/database.sql` 与 `config-util/config` 产物。业务 App 不依赖相邻 CLI 目录。
 
 新增通用组件前确认至少有跨页面或跨项目复用价值，并通过 props、emits、slots、provider 暴露能力。不要把某个服务路径、业务 DTO 或 Store 写入组件内核。
 
