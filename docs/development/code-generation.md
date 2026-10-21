@@ -31,7 +31,7 @@ node ./scripts/run-generate.mjs --tables=dict,member --skip-mock
 
 可选：`--skip-view` / `--skip-api` / `--skip-mock` / `--skip-route`（亦兼容 `--no-*`）；以及 `--cwd` / `--sql` / `--views` / `--route-map`。
 
-依赖：`devDependency` `create-g2rain-app`（本地试点可为 `file:../g2rain-app-cli`；脚手架生成的业务 App 同此约定）。
+依赖：`devDependency` `create-g2rain-app@1.0.0`。本项目使用已发布包；仅开发 CLI 本身或验证未发布改动时，才在独立试验目录使用 `file:../g2rain-app-cli`，不得将该本地路径提交到业务 App。
 
 ## 注意
 
