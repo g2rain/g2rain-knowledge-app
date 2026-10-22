@@ -54,6 +54,10 @@
       <el-table-column prop="knowledgeType" label="类型" width="100">
         <template #default="{ row }">{{ typeLabel(row.knowledgeType) }}</template>
       </el-table-column>
+      <el-table-column prop="priority" label="优先级" width="90" />
+      <el-table-column label="标签" min-width="160" show-overflow-tooltip>
+        <template #default="{ row }">{{ formatTags(row.tagsJson) }}</template>
+      </el-table-column>
       <el-table-column label="当前生效版本" min-width="140">
         <template #default="{ row }">{{ activeRevisionText(row.id) }}</template>
       </el-table-column>
@@ -428,6 +432,17 @@ const parseTagCodes = (tagsJson?: string): string[] => {
   }
 };
 
+const formatTags = (tagsJson?: string) => {
+  const codes = parseTagCodes(tagsJson);
+  if (!codes.length) return '-';
+  return codes
+    .map((code) => {
+      const tag = tagOptions.value.find((t) => t.tagCode === code);
+      return tag ? tag.tagName : code;
+    })
+    .join('、');
+};
+
 const editForm = reactive({
   id: undefined as number | undefined,
   version: undefined as number | undefined,
@@ -634,7 +649,7 @@ const submitImport = async () => {
 };
 
 onMounted(async () => {
-  await loadCategories();
+  await Promise.all([loadCategories(), loadTags()]);
   await loadData();
 });
 </script>
