@@ -49,3 +49,28 @@ export interface KnowledgeItemQuery extends BaseSelectListDto {
   createUserId?: number;
 }
 
+/** 批量导入选项 */
+export interface KnowledgeImportOptions {
+  categoryId?: number;
+  tags?: string[];
+  submitReview?: boolean;
+}
+
+/** 批量导入单条结果 */
+export interface KnowledgeImportItem {
+  knowledgeKey?: string;
+  itemStatus: 'SUCCESS' | 'SKIPPED' | 'FAILED' | string;
+  knowledgeId?: number;
+  revisionId?: number;
+  errorCode?: string;
+  errorMessage?: string;
+}
+
+/** 批量导入汇总结果 */
+export interface KnowledgeImportResult {
+  successCount: number;
+  skippedCount: number;
+  failedCount: number;
+  items: KnowledgeImportItem[];
+}
+

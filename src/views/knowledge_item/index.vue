@@ -36,7 +36,10 @@
       <div class="knowledge_item-page__title-group">
         <h2>知识内容</h2>
       </div>
-      <el-button type="primary" v-permission="'knowledge_item:add'" @click="handleCreate">新建内容</el-button>
+      <div class="knowledge_item-page__actions">
+        <el-button v-permission="'knowledge_item:import'" @click="openImport">批量导入</el-button>
+        <el-button type="primary" v-permission="'knowledge_item:add'" @click="handleCreate">新建内容</el-button>
+      </div>
     </div>
 
     <SortableTable :data="tableData" border stripe style="width: 100%" :enable-multi-sort="true" @sort-change="handleSortChange">
@@ -137,16 +140,110 @@
       @changed="loadData"
       @update:model-value="(v) => { if (!v) openCreateAfterVersion = false }"
     />
+
+    <el-drawer
+      v-model="importDrawerVisible"
+      title="批量导入"
+      :size="OVERLAY_SIZE.drawer"
+      destroy-on-close
+      :close-on-click-modal="false"
+    >
+      <el-tabs v-model="importTab">
+        <el-tab-pane label="FAQ（CSV）" name="faq">
+          <el-alert
+            type="info"
+            :closable="false"
+            show-icon
+            title="CSV 列：knowledge_key, knowledge_name, faq_question, faq_answer；可选 description。大小受服务端上传限制；已存在 key 将跳过。"
+            style="margin-bottom: 12px"
+          />
+          <el-button link type="primary" @click="downloadFaqTemplate">下载 CSV 模板</el-button>
+          <el-upload
+            style="margin-top: 12px"
+            :auto-upload="false"
+            :limit="1"
+            accept=".csv,text/csv"
+            :on-change="onFaqFileChange"
+            :on-remove="() => (importFaqFile = null)"
+          >
+            <el-button>选择 CSV</el-button>
+          </el-upload>
+        </el-tab-pane>
+        <el-tab-pane label="文件" name="files">
+          <el-alert
+            type="info"
+            :closable="false"
+            show-icon
+            title="文件名（不含扩展名）= knowledge_key，须小写字母开头；支持 PDF / Markdown / HTML；大小受服务端上传限制。"
+            style="margin-bottom: 12px"
+          />
+          <el-upload
+            :auto-upload="false"
+            multiple
+            accept=".pdf,.md,.markdown,.html,.htm"
+            :on-change="onImportFilesChange"
+            :on-remove="onImportFileRemove"
+          >
+            <el-button>选择文件</el-button>
+          </el-upload>
+        </el-tab-pane>
+      </el-tabs>
+
+      <el-form label-width="96px" style="margin-top: 16px">
+        <el-form-item label="分类">
+          <el-select v-model="importForm.categoryId" clearable filterable placeholder="可选" style="width: 100%">
+            <el-option v-for="c in categoryOptions" :key="c.id" :label="c.categoryName" :value="c.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="标签">
+          <el-select
+            v-model="importForm.tags"
+            multiple
+            filterable
+            clearable
+            placeholder="可选，应用到本批新建草稿"
+            style="width: 100%"
+          >
+            <el-option v-for="tag in tagOptions" :key="tag.tagCode" :label="tag.tagName" :value="tag.tagCode" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="提交审核">
+          <el-switch v-model="importForm.submitReview" />
+          <div class="field-tip">关闭则仅创建草稿；开启则导入成功后一并提交审核</div>
+        </el-form-item>
+      </el-form>
+
+      <el-table v-if="importResult" :data="importResult.items" border stripe style="width: 100%; margin-top: 12px">
+        <el-table-column prop="knowledgeKey" label="知识键" min-width="140" show-overflow-tooltip />
+        <el-table-column prop="itemStatus" label="结果" width="100" />
+        <el-table-column prop="errorCode" label="错误码" width="140" show-overflow-tooltip />
+        <el-table-column prop="errorMessage" label="说明" min-width="160" show-overflow-tooltip />
+      </el-table>
+      <div v-if="importResult" class="field-tip" style="margin-top: 8px">
+        成功 {{ importResult.successCount }} / 跳过 {{ importResult.skippedCount }} / 失败
+        {{ importResult.failedCount }}
+      </div>
+
+      <template #footer>
+        <el-button @click="importDrawerVisible = false">关闭</el-button>
+        <el-button type="primary" :loading="importSubmitting" @click="submitImport">开始导入</el-button>
+      </template>
+    </el-drawer>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
-import type { FormInstance, FormRules } from 'element-plus';
+import type { FormInstance, FormRules, UploadFile } from 'element-plus';
 import { ElMessage } from 'element-plus';
 import { t } from '@platform/i18n';
 import { KnowledgeItemApi } from './api';
-import type { KnowledgeItem, KnowledgeItemPayload, KnowledgeItemQuery } from './type';
+import type {
+  KnowledgeImportResult,
+  KnowledgeItem,
+  KnowledgeItemPayload,
+  KnowledgeItemQuery,
+} from './type';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
 import { showErrorMessage } from '@/components';
@@ -155,6 +252,8 @@ import { OVERLAY_SIZE } from '@shared/knowledge/overlay';
 import { ITEM_STATUS_OPTIONS, KNOWLEDGE_TYPE_OPTIONS, resolveTypeLabel } from '@/views/knowledge_revision/status';
 import { KnowledgeCategoryApi } from '@/views/knowledge_category/api';
 import type { KnowledgeCategory } from '@/views/knowledge_category/type';
+import { KnowledgeTagApi } from '@/views/knowledge_tag/api';
+import type { KnowledgeTag } from '@/views/knowledge_tag/type';
 import { KnowledgeReleaseApi } from '@/views/knowledge_release/api';
 import { KnowledgeRevisionApi } from '@/views/knowledge_revision/api';
 import RevisionManageDrawer from '@/views/knowledge_revision/RevisionManageDrawer.vue';
@@ -343,6 +442,102 @@ const submitEdit = async () => {
   }
 };
 
+const importDrawerVisible = ref(false);
+const importTab = ref<'faq' | 'files'>('faq');
+const importSubmitting = ref(false);
+const importFaqFile = ref<File | null>(null);
+const importFiles = ref<File[]>([]);
+const importResult = ref<KnowledgeImportResult | null>(null);
+const tagOptions = ref<KnowledgeTag[]>([]);
+const importForm = reactive({
+  categoryId: undefined as number | undefined,
+  tags: [] as string[],
+  submitReview: false,
+});
+
+const loadTags = async () => {
+  try {
+    tagOptions.value = await KnowledgeTagApi.list({ status: 'ACTIVE' });
+  } catch {
+    tagOptions.value = [];
+  }
+};
+
+const openImport = async () => {
+  importTab.value = 'faq';
+  importFaqFile.value = null;
+  importFiles.value = [];
+  importResult.value = null;
+  importForm.categoryId = undefined;
+  importForm.tags = [];
+  importForm.submitReview = false;
+  importDrawerVisible.value = true;
+  if (!tagOptions.value.length) {
+    await loadTags();
+  }
+};
+
+const downloadFaqTemplate = () => {
+  const content =
+    'knowledge_key,knowledge_name,faq_question,faq_answer,description\n' +
+    'sample_faq,示例FAQ,标准问题,标准答案,可选说明\n';
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = 'knowledge-faq-import-template.csv';
+  anchor.click();
+  URL.revokeObjectURL(url);
+};
+
+const onFaqFileChange = (file: UploadFile) => {
+  importFaqFile.value = (file.raw as File) || null;
+};
+
+const onImportFilesChange = (file: UploadFile, fileList: UploadFile[]) => {
+  importFiles.value = fileList.map((item) => item.raw as File).filter(Boolean);
+};
+
+const onImportFileRemove = (_file: UploadFile, fileList: UploadFile[]) => {
+  importFiles.value = fileList.map((item) => item.raw as File).filter(Boolean);
+};
+
+const submitImport = async () => {
+  importSubmitting.value = true;
+  try {
+    const options = {
+      categoryId: importForm.categoryId,
+      tags: importForm.tags.length ? [...importForm.tags] : undefined,
+      submitReview: importForm.submitReview,
+    };
+    let result: KnowledgeImportResult;
+    if (importTab.value === 'faq') {
+      if (!importFaqFile.value) {
+        showErrorMessage('请先选择 CSV 文件');
+        return;
+      }
+      result = await KnowledgeItemApi.importFaq(importFaqFile.value, options);
+    } else {
+      if (!importFiles.value.length) {
+        showErrorMessage('请先选择要导入的文件');
+        return;
+      }
+      result = await KnowledgeItemApi.importFiles(importFiles.value, options);
+    }
+    importResult.value = result;
+    ElMessage.success(
+      `导入完成：成功 ${result.successCount}，跳过 ${result.skippedCount}，失败 ${result.failedCount}`,
+    );
+    if (result.successCount > 0) {
+      await loadData();
+    }
+  } catch (error: unknown) {
+    showErrorMessage(error instanceof Error ? error.message : '批量导入失败');
+  } finally {
+    importSubmitting.value = false;
+  }
+};
+
 onMounted(async () => {
   await loadCategories();
   await loadData();
@@ -365,6 +560,10 @@ onMounted(async () => {
   padding: 16px 20px;
   background-color: var(--g2-bg-container);
   border-radius: 4px;
+}
+.knowledge_item-page__actions {
+  display: flex;
+  gap: 8px;
 }
 .knowledge_item-page__header h2 {
   margin: 0;
