@@ -44,7 +44,7 @@
           <el-table-column prop="sourceType" label="类型" width="80">
             <template #default="{ row }">{{ typeLabel(row.sourceType) }}</template>
           </el-table-column>
-          <el-table-column prop="priority" label="优先级" width="80" />
+          <el-table-column prop="itemPriority" label="优先级" width="80" />
           <el-table-column prop="updateTime" label="更新时间" width="160" />
         </el-table>
         <el-empty v-if="!loading && !tableData.length" :description="emptyText" :image-size="80" />
@@ -91,8 +91,8 @@
           </div>
           <el-descriptions :column="1" border>
             <el-descriptions-item label="类型">{{ typeLabel(current.sourceType) }}</el-descriptions-item>
-            <el-descriptions-item label="优先级">{{ current.priority }}</el-descriptions-item>
-            <el-descriptions-item label="标签">{{ formatTags(current.tagsJson) }}</el-descriptions-item>
+            <el-descriptions-item label="优先级">{{ current.itemPriority ?? 0 }}</el-descriptions-item>
+            <el-descriptions-item label="标签">{{ formatTags(current.itemTagsJson) }}</el-descriptions-item>
             <el-descriptions-item v-if="current.sourceType === 'FAQ'" label="标准问题">
               {{ current.faqQuestion }}
             </el-descriptions-item>
@@ -129,6 +129,8 @@ import { resolveTypeLabel } from '@/views/knowledge_revision/status';
 
 interface ReviewRow extends KnowledgeRevision {
   knowledgeName?: string;
+  itemPriority?: number;
+  itemTagsJson?: string;
 }
 
 const typeLabel = resolveTypeLabel;
@@ -147,6 +149,7 @@ const loading = ref(false);
 const detailLoading = ref(false);
 const tagOptions = ref<KnowledgeTag[]>([]);
 const itemNameMap = ref<Record<number, string>>({});
+const itemMetaMap = ref<Record<number, { priority: number; tagsJson?: string }>>({});
 
 const emptyText = computed(() => {
   if (queryForm.revisionStatus === 'REVIEWING') return '暂无待审核内容，可切换其他状态查看';
@@ -178,12 +181,14 @@ const resolveKnowledgeNames = async (rows: KnowledgeRevision[]) => {
   const ids = [...new Set(rows.map((r) => r.knowledgeId).filter(Boolean))];
   await Promise.all(
     ids.map(async (id) => {
-      if (itemNameMap.value[id]) return;
+      if (itemNameMap.value[id] && itemMetaMap.value[id]) return;
       try {
         const item = await KnowledgeItemApi.getById(id);
         itemNameMap.value[id] = item.knowledgeName;
+        itemMetaMap.value[id] = { priority: item.priority ?? 0, tagsJson: item.tagsJson };
       } catch {
         itemNameMap.value[id] = `#${id}`;
+        itemMetaMap.value[id] = { priority: 0 };
       }
     }),
   );
@@ -205,6 +210,8 @@ const loadData = async () => {
     rows = rows.map((r) => ({
       ...r,
       knowledgeName: itemNameMap.value[r.knowledgeId] || `#${r.knowledgeId}`,
+      itemPriority: itemMetaMap.value[r.knowledgeId]?.priority ?? 0,
+      itemTagsJson: itemMetaMap.value[r.knowledgeId]?.tagsJson,
     }));
 
     if (knowledgeName.trim()) {

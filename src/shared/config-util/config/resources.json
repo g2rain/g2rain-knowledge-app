@@ -118,7 +118,7 @@
     },
     {
       "parentId": null,
-      "pageElementName": "批量导入",
+      "pageElementName": "导入",
       "pageElementCode": "knowledge_item:import",
       "pageElementType": "button",
       "pageCode": "knowledge_item",

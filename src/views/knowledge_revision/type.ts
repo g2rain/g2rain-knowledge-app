@@ -29,8 +29,6 @@ export interface KnowledgeRevision extends BaseVo {
   embeddingProfile: string;
   embeddingModel: string;
   indexCompletedTime: string;
-  priority: number;
-  tagsJson: string;
   reviewerUserId: number;
   reviewTime: string;
   reviewComment: string;
@@ -49,8 +47,6 @@ export interface KnowledgeRevisionPayload {
   sourceType?: string;
   faqQuestion?: string;
   faqAnswer?: string;
-  priority?: number;
-  tagsJson?: string;
 }
 
 export interface KnowledgeReviewPayload {
@@ -87,8 +83,6 @@ export interface KnowledgeRevisionQuery extends BaseSelectListDto {
   embeddingProfile?: string;
   embeddingModel?: string;
   indexCompletedTime?: string;
-  priority?: number;
-  tagsJson?: string;
   reviewerUserId?: number;
   reviewTime?: string;
   reviewComment?: string;

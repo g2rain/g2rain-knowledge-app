@@ -23,6 +23,9 @@ function appendImportOptions(form: FormData, options?: KnowledgeImportOptions) {
   if (options.submitReview != null) {
     form.append('submitReview', String(options.submitReview));
   }
+  if (options.priority != null) {
+    form.append('priority', String(options.priority));
+  }
   (options.tags || []).forEach((tag) => form.append('tags', tag));
 }
 
@@ -53,6 +56,17 @@ export class KnowledgeItemApi {
   static async remove(id: number): Promise<void> {
     const http = getHttpClient('default');
     await http.delete(`/knowledge/knowledge_item/${id}`);
+  }
+
+  static async importItems(file: File, options?: KnowledgeImportOptions): Promise<KnowledgeImportResult> {
+    const http = getHttpClient('default');
+    const form = new FormData();
+    form.append('file', file);
+    appendImportOptions(form, options);
+    const res = await http.post<KnowledgeImportResult>('/knowledge/knowledge_item/import/items', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
   }
 
   static async importFaq(file: File, options?: KnowledgeImportOptions): Promise<KnowledgeImportResult> {

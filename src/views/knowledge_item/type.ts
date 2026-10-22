@@ -15,6 +15,8 @@ export interface KnowledgeItem extends BaseVo {
   knowledgeType: string;
   status: string;
   description: string;
+  priority: number;
+  tagsJson: string;
   createUserId: number;
 }
 
@@ -30,6 +32,8 @@ export interface KnowledgeItemPayload {
   knowledgeType?: string;
   status?: string;
   description?: string;
+  priority?: number;
+  tagsJson?: string;
 }
 
 /**
@@ -53,6 +57,7 @@ export interface KnowledgeItemQuery extends BaseSelectListDto {
 export interface KnowledgeImportOptions {
   categoryId?: number;
   tags?: string[];
+  priority?: number;
   submitReview?: boolean;
 }
 

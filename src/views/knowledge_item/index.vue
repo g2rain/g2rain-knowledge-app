@@ -123,6 +123,26 @@
           </el-select>
           <div class="field-tip">停用不等同于下线或撤回线上版本，请按实际业务影响确认</div>
         </el-form-item>
+        <el-form-item label="标签">
+          <el-select
+            v-model="editForm.tagCodes"
+            multiple
+            filterable
+            clearable
+            placeholder="选择标签"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="tag in tagOptions"
+              :key="tag.tagCode"
+              :label="`${tag.tagName}（${tag.tagCode}）`"
+              :value="tag.tagCode"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="优先级" prop="priority">
+          <el-input-number v-model="editForm.priority" :min="0" controls-position="right" style="width: 100%" />
+        </el-form-item>
         <el-form-item label="说明" prop="description">
           <el-input v-model="editForm.description" type="textarea" :rows="4" placeholder="说明" />
         </el-form-item>
@@ -149,12 +169,50 @@
       :close-on-click-modal="false"
     >
       <el-tabs v-model="importTab">
+        <el-tab-pane label="主题 CSV" name="items">
+          <el-alert
+            type="info"
+            :closable="false"
+            show-icon
+            title="第一步：创建 DOCUMENT 主题与空 FILE 草稿。CSV 列：knowledge_key, knowledge_name；可选 description、priority。标签/分类写入主题；已存在 key 跳过。"
+            style="margin-bottom: 12px"
+          />
+          <el-button link type="primary" @click="downloadItemsTemplate">下载 CSV 模板</el-button>
+          <el-upload
+            style="margin-top: 12px"
+            :auto-upload="false"
+            :limit="1"
+            accept=".csv,text/csv"
+            :on-change="onItemsFileChange"
+            :on-remove="() => (importItemsFile = null)"
+          >
+            <el-button>选择 CSV</el-button>
+          </el-upload>
+        </el-tab-pane>
+        <el-tab-pane label="文件挂接" name="files">
+          <el-alert
+            type="info"
+            :closable="false"
+            show-icon
+            title="第二步：须先主题 CSV。文件名（不含扩展名）= knowledge_key；挂接到已有主题的 FILE 草稿。主题不存在则失败。支持 PDF / Markdown / HTML。"
+            style="margin-bottom: 12px"
+          />
+          <el-upload
+            :auto-upload="false"
+            multiple
+            accept=".pdf,.md,.markdown,.html,.htm"
+            :on-change="onImportFilesChange"
+            :on-remove="onImportFileRemove"
+          >
+            <el-button>选择文件</el-button>
+          </el-upload>
+        </el-tab-pane>
         <el-tab-pane label="FAQ（CSV）" name="faq">
           <el-alert
             type="info"
             :closable="false"
             show-icon
-            title="CSV 列：knowledge_key, knowledge_name, faq_question, faq_answer；可选 description。大小受服务端上传限制；已存在 key 将跳过。"
+            title="CSV 列：knowledge_key, knowledge_name, faq_question, faq_answer；可选 description、priority。标签/优先级写入主题；已存在 key 将跳过。"
             style="margin-bottom: 12px"
           />
           <el-button link type="primary" @click="downloadFaqTemplate">下载 CSV 模板</el-button>
@@ -169,47 +227,29 @@
             <el-button>选择 CSV</el-button>
           </el-upload>
         </el-tab-pane>
-        <el-tab-pane label="文件" name="files">
-          <el-alert
-            type="info"
-            :closable="false"
-            show-icon
-            title="文件名（不含扩展名）= knowledge_key，须小写字母开头；支持 PDF / Markdown / HTML；大小受服务端上传限制。"
-            style="margin-bottom: 12px"
-          />
-          <el-upload
-            :auto-upload="false"
-            multiple
-            accept=".pdf,.md,.markdown,.html,.htm"
-            :on-change="onImportFilesChange"
-            :on-remove="onImportFileRemove"
-          >
-            <el-button>选择文件</el-button>
-          </el-upload>
-        </el-tab-pane>
       </el-tabs>
 
       <el-form label-width="96px" style="margin-top: 16px">
-        <el-form-item label="分类">
+        <el-form-item v-if="importTab !== 'files'" label="分类">
           <el-select v-model="importForm.categoryId" clearable filterable placeholder="可选" style="width: 100%">
             <el-option v-for="c in categoryOptions" :key="c.id" :label="c.categoryName" :value="c.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="标签">
+        <el-form-item v-if="importTab !== 'files'" label="标签">
           <el-select
             v-model="importForm.tags"
             multiple
             filterable
             clearable
-            placeholder="可选，应用到本批新建草稿"
+            placeholder="可选，写入本批新建主题"
             style="width: 100%"
           >
             <el-option v-for="tag in tagOptions" :key="tag.tagCode" :label="tag.tagName" :value="tag.tagCode" />
           </el-select>
         </el-form-item>
-        <el-form-item label="提交审核">
+        <el-form-item v-if="importTab !== 'items'" label="提交审核">
           <el-switch v-model="importForm.submitReview" />
-          <div class="field-tip">关闭则仅创建草稿；开启则导入成功后一并提交审核</div>
+          <div class="field-tip">主题 CSV 仅建主题与空草稿；文件/FAQ 可开启提交审核</div>
         </el-form-item>
       </el-form>
 
@@ -362,6 +402,32 @@ const openVersions = (row: KnowledgeItem, create = false) => {
 const editDrawerVisible = ref(false);
 const isEdit = ref(false);
 const editFormRef = ref<FormInstance | null>(null);
+const tagOptions = ref<KnowledgeTag[]>([]);
+
+const loadTags = async () => {
+  try {
+    tagOptions.value = await KnowledgeTagApi.list({ status: 'ACTIVE' });
+  } catch {
+    tagOptions.value = [];
+  }
+};
+
+const ensureTagsLoaded = async () => {
+  if (!tagOptions.value.length) {
+    await loadTags();
+  }
+};
+
+const parseTagCodes = (tagsJson?: string): string[] => {
+  if (!tagsJson) return [];
+  try {
+    const parsed = JSON.parse(tagsJson);
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+};
+
 const editForm = reactive({
   id: undefined as number | undefined,
   version: undefined as number | undefined,
@@ -371,6 +437,8 @@ const editForm = reactive({
   knowledgeType: 'DOCUMENT',
   status: 'ACTIVE',
   description: '',
+  priority: 0,
+  tagCodes: [] as string[],
 });
 const editRules: FormRules = {
   knowledgeName: [{ required: true, message: '请输入名称', trigger: 'blur' }],
@@ -380,7 +448,7 @@ const editRules: FormRules = {
   status: [{ required: true, message: '请选择状态', trigger: 'change' }],
 };
 
-const handleCreate = () => {
+const handleCreate = async () => {
   isEdit.value = false;
   editFormRef.value?.clearValidate();
   Object.assign(editForm, {
@@ -392,11 +460,14 @@ const handleCreate = () => {
     knowledgeType: 'DOCUMENT',
     status: 'ACTIVE',
     description: '',
+    priority: 0,
+    tagCodes: [],
   });
   editDrawerVisible.value = true;
+  await ensureTagsLoaded();
 };
 
-const handleEdit = (row: KnowledgeItem) => {
+const handleEdit = async (row: KnowledgeItem) => {
   isEdit.value = true;
   editFormRef.value?.clearValidate();
   Object.assign(editForm, {
@@ -408,8 +479,11 @@ const handleEdit = (row: KnowledgeItem) => {
     knowledgeType: row.knowledgeType,
     status: row.status,
     description: row.description,
+    priority: row.priority ?? 0,
+    tagCodes: parseTagCodes(row.tagsJson),
   });
   editDrawerVisible.value = true;
+  await ensureTagsLoaded();
 };
 
 const submitEdit = async () => {
@@ -423,6 +497,8 @@ const submitEdit = async () => {
     knowledgeType: editForm.knowledgeType,
     status: editForm.status,
     description: editForm.description,
+    priority: editForm.priority,
+    tagsJson: JSON.stringify(editForm.tagCodes || []),
   };
   if (isEdit.value) {
     payload.id = editForm.id;
@@ -443,28 +519,21 @@ const submitEdit = async () => {
 };
 
 const importDrawerVisible = ref(false);
-const importTab = ref<'faq' | 'files'>('faq');
+const importTab = ref<'items' | 'files' | 'faq'>('items');
 const importSubmitting = ref(false);
+const importItemsFile = ref<File | null>(null);
 const importFaqFile = ref<File | null>(null);
 const importFiles = ref<File[]>([]);
 const importResult = ref<KnowledgeImportResult | null>(null);
-const tagOptions = ref<KnowledgeTag[]>([]);
 const importForm = reactive({
   categoryId: undefined as number | undefined,
   tags: [] as string[],
   submitReview: false,
 });
 
-const loadTags = async () => {
-  try {
-    tagOptions.value = await KnowledgeTagApi.list({ status: 'ACTIVE' });
-  } catch {
-    tagOptions.value = [];
-  }
-};
-
 const openImport = async () => {
-  importTab.value = 'faq';
+  importTab.value = 'items';
+  importItemsFile.value = null;
   importFaqFile.value = null;
   importFiles.value = [];
   importResult.value = null;
@@ -472,29 +541,44 @@ const openImport = async () => {
   importForm.tags = [];
   importForm.submitReview = false;
   importDrawerVisible.value = true;
-  if (!tagOptions.value.length) {
-    await loadTags();
-  }
+  await ensureTagsLoaded();
 };
 
-const downloadFaqTemplate = () => {
-  const content =
-    'knowledge_key,knowledge_name,faq_question,faq_answer,description\n' +
-    'sample_faq,示例FAQ,标准问题,标准答案,可选说明\n';
+const downloadCsv = (content: string, filename: string) => {
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = 'knowledge-faq-import-template.csv';
+  anchor.download = filename;
   anchor.click();
   URL.revokeObjectURL(url);
+};
+
+const downloadItemsTemplate = () => {
+  downloadCsv(
+    'knowledge_key,knowledge_name,description,priority\n' +
+      'sample_doc,示例文档,可选说明,0\n',
+    'knowledge-items-import-template.csv',
+  );
+};
+
+const downloadFaqTemplate = () => {
+  downloadCsv(
+    'knowledge_key,knowledge_name,faq_question,faq_answer,description,priority\n' +
+      'sample_faq,示例FAQ,标准问题,标准答案,可选说明,0\n',
+    'knowledge-faq-import-template.csv',
+  );
+};
+
+const onItemsFileChange = (file: UploadFile) => {
+  importItemsFile.value = (file.raw as File) || null;
 };
 
 const onFaqFileChange = (file: UploadFile) => {
   importFaqFile.value = (file.raw as File) || null;
 };
 
-const onImportFilesChange = (file: UploadFile, fileList: UploadFile[]) => {
+const onImportFilesChange = (_file: UploadFile, fileList: UploadFile[]) => {
   importFiles.value = fileList.map((item) => item.raw as File).filter(Boolean);
 };
 
@@ -511,7 +595,16 @@ const submitImport = async () => {
       submitReview: importForm.submitReview,
     };
     let result: KnowledgeImportResult;
-    if (importTab.value === 'faq') {
+    if (importTab.value === 'items') {
+      if (!importItemsFile.value) {
+        showErrorMessage('请先选择主题 CSV 文件');
+        return;
+      }
+      result = await KnowledgeItemApi.importItems(importItemsFile.value, {
+        categoryId: options.categoryId,
+        tags: options.tags,
+      });
+    } else if (importTab.value === 'faq') {
       if (!importFaqFile.value) {
         showErrorMessage('请先选择 CSV 文件');
         return;
@@ -522,7 +615,9 @@ const submitImport = async () => {
         showErrorMessage('请先选择要导入的文件');
         return;
       }
-      result = await KnowledgeItemApi.importFiles(importFiles.value, options);
+      result = await KnowledgeItemApi.importFiles(importFiles.value, {
+        submitReview: options.submitReview,
+      });
     }
     importResult.value = result;
     ElMessage.success(

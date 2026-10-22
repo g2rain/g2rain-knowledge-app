@@ -1,26 +1,28 @@
 # 知识内容批量导入
 
-状态：已实现（后端 + App）。FAQ CSV 与多文件同步导入；挂在 `knowledge_item` 资源上。
+状态：已实现（后端 + App）。主题 CSV → 文件挂接两步导入；FAQ 单步 CSV；挂在 `knowledge_item` 资源上。标签与优先级归属主题（Item）。
 
 ## 规则
 
 | 规则 | 说明 |
 |------|------|
-| 已存在 key | 同组织 `knowledge_key` 已存在 → `SKIPPED` |
-| 文件命名 | 文件名去掉扩展名 = `knowledge_key`；`knowledge_name` 同 stem |
-| 规模 | 受 `spring.servlet.multipart.max-request-size` / `max-file-size` 约束（默认请求 20MB、单文件 10MB） |
-| 导入后 | `submitReview=false` 留 `DRAFT`；`true` 则来源就绪后提交审核 → `REVIEWING` |
+| 主题 CSV | 创建 DOCUMENT 主题 + 空 FILE 草稿；写入分类/标签/优先级；已存在 key → `SKIPPED`；**不** submitReview |
+| 文件挂接 | 文件名去掉扩展名 = `knowledge_key`；主题不存在 → `FAILED`（`knowledge.40011`）；挂接到已有 FILE 草稿（无则新建） |
+| FAQ CSV | 一行一 FAQ 主题+草稿；标签/优先级写 Item；已存在 key → `SKIPPED` |
+| 规模 | 受 `spring.servlet.multipart.max-request-size` / `max-file-size` 约束 |
+| 导入后 | FAQ/文件：`submitReview=false` 留 `DRAFT`；`true` 则来源就绪后提交审核 |
 | key 格式 | `[a-z][a-z0-9_]*`，否则该条 `FAILED` |
 | 版本号 | 批量新建固定 `revisionNo=v1` |
 
-不自动审核通过、PROCESS 或发布。
+不自动审核通过、PROCESS 或发布。已发布主题改标签后需重新 PROCESS 才会更新 Milvus。
 
 ## 接口
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
+| POST | `/knowledge_item/import/items` | 主题 CSV（DOCUMENT + 空 FILE 草稿） |
+| POST | `/knowledge_item/import/files` | 多文件挂接到已有主题 |
 | POST | `/knowledge_item/import/faq` | CSV 批量 FAQ |
-| POST | `/knowledge_item/import/files` | 多文件批量 DOCUMENT |
 
 App 经网关：`/knowledge/knowledge_item/import/*`。
 
@@ -28,14 +30,15 @@ App 经网关：`/knowledge/knowledge_item/import/*`。
 
 | 字段 | 说明 |
 |------|------|
-| `file` / `files` | FAQ 用 `file`；文件导入用 `files` |
-| `categoryId` | 可选 |
-| `tags` | 可选，可重复；tag_code |
-| `submitReview` | 可选，默认 false |
+| `file` / `files` | items/FAQ 用 `file`；文件挂接用 `files` |
+| `categoryId` | 可选（主题 CSV / FAQ） |
+| `tags` | 可选，可重复；写入主题（文件挂接忽略） |
+| `priority` | 可选，写入主题默认值（文件挂接忽略；CSV 行级 priority 优先） |
+| `submitReview` | 可选，默认 false（主题 CSV 不使用） |
 
-不传 `organId`（服务端上下文）。
+主题 CSV 列：`knowledge_key,knowledge_name`，可选 `description`、`priority`。
 
-FAQ CSV 列：`knowledge_key,knowledge_name,faq_question,faq_answer`，可选 `description`。
+FAQ CSV 列：`knowledge_key,knowledge_name,faq_question,faq_answer`，可选 `description`、`priority`。
 
 ### 出参 `Result<KnowledgeImportResultVo>`
 
@@ -47,7 +50,7 @@ FAQ CSV 列：`knowledge_key,knowledge_name,faq_question,faq_answer`，可选 `d
 | `items[].knowledgeId` / `revisionId` | 成功时有 |
 | `items[].errorCode` / `errorMessage` | 失败或跳过说明 |
 
-整批拒绝（空文件）：`knowledge.40010`。上传超限由 servlet multipart 拦截。
+整批拒绝（空文件）：`knowledge.40010`。主题缺失：`knowledge.40011`。
 
 ## 分层
 
