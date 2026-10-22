@@ -372,9 +372,7 @@ const retryTask = async (row: TaskRow) => {
   }
   try {
     await KnowledgeTaskApi.retry({ taskId: row.id, expectedVersion: row.version });
-    ElMessage.success('已提交重试');
-    queryForm.queueType = 'pending_task';
-    pagination.pageNum = 1;
+    ElMessage.success('已提交重试，可继续处理本页其他任务');
     await loadData();
     startPoll();
   } catch (error: unknown) {
