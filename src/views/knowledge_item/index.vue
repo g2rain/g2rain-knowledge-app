@@ -178,7 +178,7 @@
             type="info"
             :closable="false"
             show-icon
-            title="第一步：创建 DOCUMENT 主题与空 FILE 草稿。CSV 列：knowledge_key, knowledge_name；可选 description、priority。标签/分类写入主题；已存在 key 跳过。"
+            title="第一步：创建 DOCUMENT 主题与空 FILE 草稿。CSV 列：knowledge_key, knowledge_name；可选 description、priority、tags、category_code（行级 tags/分类优先于表单）。已存在 key 跳过。"
             style="margin-bottom: 12px"
           />
           <el-button link type="primary" @click="downloadItemsTemplate">下载 CSV 模板</el-button>
@@ -571,8 +571,8 @@ const downloadCsv = (content: string, filename: string) => {
 
 const downloadItemsTemplate = () => {
   downloadCsv(
-    'knowledge_key,knowledge_name,description,priority\n' +
-      'sample_doc,示例文档,可选说明,0\n',
+    'knowledge_key,knowledge_name,description,priority,tags,category_code\n' +
+      'sample_doc,示例文档,可选说明,0,g2rain;knowledge,knowledge\n',
     'knowledge-items-import-template.csv',
   );
 };

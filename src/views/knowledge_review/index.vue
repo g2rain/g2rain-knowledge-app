@@ -64,8 +64,10 @@
       <div class="knowledge_review-page__detail" v-loading="detailLoading">
         <template v-if="current">
           <div class="detail-toolbar">
-            <h3>{{ current.knowledgeName }} · {{ current.revisionNo }}</h3>
-            <div>
+            <h3 :title="`${current.knowledgeName} · ${current.revisionNo}`">
+              {{ current.knowledgeName }} · {{ current.revisionNo }}
+            </h3>
+            <div class="detail-toolbar__actions">
               <el-button
                 v-if="current.sourceType === 'FILE' && current.sourceFileName"
                 v-permission="'knowledge_revision:download-source'"
@@ -89,7 +91,7 @@
               </el-button>
             </div>
           </div>
-          <el-descriptions :column="1" border>
+          <el-descriptions :column="1" border class="detail-descriptions">
             <el-descriptions-item label="类型">{{ typeLabel(current.sourceType) }}</el-descriptions-item>
             <el-descriptions-item label="优先级">{{ current.itemPriority ?? 0 }}</el-descriptions-item>
             <el-descriptions-item label="标签">{{ formatTags(current.itemTagsJson) }}</el-descriptions-item>
@@ -100,7 +102,9 @@
               <pre class="block-text">{{ current.faqAnswer }}</pre>
             </el-descriptions-item>
             <el-descriptions-item v-else label="源文件">
-              {{ current.sourceFileName || '未上传' }}
+              <div class="source-file" :title="current.sourceFileName || ''">
+                {{ current.sourceFileName || '未上传' }}
+              </div>
               <div class="field-tip">文件请下载后在本地查看；下载成功不等于审核完成</div>
             </el-descriptions-item>
             <el-descriptions-item label="审核意见">{{ current.reviewComment || '-' }}</el-descriptions-item>
@@ -262,9 +266,22 @@ const onSelectRow = async (row: ReviewRow | null) => {
   detailLoading.value = true;
   try {
     const latest = await KnowledgeRevisionApi.getById(row.id);
+    let meta = itemMetaMap.value[latest.knowledgeId];
+    let knowledgeName = itemNameMap.value[latest.knowledgeId] || row.knowledgeName;
+    try {
+      const item = await KnowledgeItemApi.getById(latest.knowledgeId);
+      knowledgeName = item.knowledgeName;
+      meta = { priority: item.priority ?? 0, tagsJson: item.tagsJson };
+      itemNameMap.value[latest.knowledgeId] = knowledgeName;
+      itemMetaMap.value[latest.knowledgeId] = meta;
+    } catch {
+      /* 沿用列表侧已解析的主题元数据 */
+    }
     current.value = {
       ...latest,
-      knowledgeName: itemNameMap.value[latest.knowledgeId] || row.knowledgeName,
+      knowledgeName,
+      itemPriority: meta?.priority ?? row.itemPriority ?? 0,
+      itemTagsJson: meta?.tagsJson ?? row.itemTagsJson,
     };
   } catch (error: unknown) {
     showErrorMessage(error instanceof Error ? error.message : '加载详情失败');
@@ -391,10 +408,33 @@ onMounted(async () => {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+  min-width: 0;
 }
 .detail-toolbar h3 {
   margin: 0;
   font-size: 16px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.detail-toolbar__actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+}
+.detail-descriptions :deep(.el-descriptions__content) {
+  min-width: 0;
+  word-break: break-all;
+}
+.source-file {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 .block-text {
   white-space: pre-wrap;

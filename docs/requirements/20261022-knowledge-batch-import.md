@@ -36,7 +36,9 @@ App 经网关：`/knowledge/knowledge_item/import/*`。
 | `priority` | 可选，写入主题默认值（文件挂接忽略；CSV 行级 priority 优先） |
 | `submitReview` | 可选，默认 false（主题 CSV 不使用） |
 
-主题 CSV 列：`knowledge_key,knowledge_name`，可选 `description`、`priority`。
+主题 CSV 列：`knowledge_key,knowledge_name`，可选 `description`、`priority`、`tags`（`;`/`|`/`,` 分隔的 tag_code；行级优先于表单）、`category_code`（行级优先于表单 `categoryId`，须为 ACTIVE 分类编码）。
+
+FAQ CSV 同样可选 `category_code`。
 
 FAQ CSV 列：`knowledge_key,knowledge_name,faq_question,faq_answer`，可选 `description`、`priority`。
 
