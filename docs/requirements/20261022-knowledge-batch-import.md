@@ -12,7 +12,8 @@
 | 规模 | 受 `spring.servlet.multipart.max-request-size` / `max-file-size` 约束 |
 | 导入后 | FAQ/文件：`submitReview=false` 留 `DRAFT`；`true` 则来源就绪后提交审核 |
 | key 格式 | `[a-z][a-z0-9_]*`，否则该条 `FAILED` |
-| 版本号 | 批量新建固定 `revisionNo=v1` |
+| 版本号 | 无草稿时自动分配下一 `vN`（已有 `v1` 则 `v2`…）；非 `vN` 风格时用毫秒时间戳 |
+| 文件内容去重 | 上传前计算 SHA-256，仅与同主题**最新** FILE 版本的 `source_sha256` 相同则 `SKIPPED`；历史版本相同仍可上传（允许回退） |
 
 不自动审核通过、PROCESS 或发布。已发布主题改标签后需重新 PROCESS 才会更新 Milvus。
 

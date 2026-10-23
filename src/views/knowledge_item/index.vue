@@ -2,6 +2,9 @@
   <div class="knowledge_item-page">
     <el-card class="knowledge_item-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
+        <el-form-item label="所属机构">
+          <OrganSelect v-model="queryForm.organId" />
+        </el-form-item>
         <el-form-item label="名称">
           <el-input v-model="queryForm.knowledgeName" placeholder="知识名称" clearable style="width: 200px" />
         </el-form-item>
@@ -43,6 +46,9 @@
     </div>
 
     <SortableTable :data="tableData" border stripe style="width: 100%" :enable-multi-sort="true" @sort-change="handleSortChange">
+      <el-table-column label="机构名称" min-width="140" show-overflow-tooltip>
+        <template #default="{ row }">{{ organName(row) }}</template>
+      </el-table-column>
       <el-table-column prop="knowledgeName" label="名称" min-width="180">
         <template #default="{ row }">
           <el-button type="primary" link @click="openVersions(row)">{{ row.knowledgeName }}</el-button>
@@ -290,8 +296,10 @@ import type {
 } from './type';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
+import { OrganSelect } from '@g2rain/ui/platform';
 import { showErrorMessage } from '@/components';
 import { compactQuery } from '@shared/knowledge/entity';
+import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
 import { OVERLAY_SIZE } from '@shared/knowledge/overlay';
 import { ITEM_STATUS_OPTIONS, KNOWLEDGE_TYPE_OPTIONS, resolveTypeLabel } from '@/views/knowledge_revision/status';
 import { KnowledgeCategoryApi } from '@/views/knowledge_category/api';
@@ -310,6 +318,7 @@ const typeLabel = resolveTypeLabel;
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
 const queryForm = reactive({
+  organId: undefined as number | null | undefined,
   knowledgeName: '',
   knowledgeKey: '',
   categoryId: undefined as number | undefined,
@@ -360,6 +369,7 @@ const loadData = async () => {
     } as PageSelectListDto & KnowledgeItemQuery);
     tableData.value = pageData.records;
     pagination.total = pageData.total;
+    await ensureOrganNames(pageData.records);
     await loadActiveRevisions(pageData.records);
   } catch (error: unknown) {
     showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_LOAD_FAIL', '加载列表失败'));
@@ -374,6 +384,7 @@ const handleSearch = () => {
 const handleReset = () => {
   baseQueryForm.value = {};
   Object.assign(queryForm, {
+    organId: undefined,
     knowledgeName: '',
     knowledgeKey: '',
     categoryId: undefined,

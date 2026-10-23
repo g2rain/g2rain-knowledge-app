@@ -2,6 +2,9 @@
   <div class="knowledge_category-page">
     <el-card class="knowledge_category-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
+        <el-form-item label="所属机构">
+          <OrganSelect v-model="queryForm.organId" />
+        </el-form-item>
         <el-form-item label="分类编码">
           <el-input v-model="queryForm.categoryCode" placeholder="分类编码" clearable style="width: 200px" />
         </el-form-item>
@@ -30,6 +33,9 @@
     </div>
 
     <SortableTable :data="tableData" border stripe style="width: 100%" :enable-multi-sort="true" @sort-change="handleSortChange">
+      <el-table-column label="机构名称" min-width="140" show-overflow-tooltip>
+        <template #default="{ row }">{{ organName(row) }}</template>
+      </el-table-column>
       <el-table-column prop="categoryCode" label="编码" min-width="140" />
       <el-table-column prop="categoryName" label="名称" min-width="160" />
       <el-table-column prop="status" label="状态" width="100">
@@ -97,6 +103,7 @@
 
     <el-dialog v-model="detailDialogVisible" title="分类明细" width="520px">
       <el-descriptions :column="1" border>
+        <el-descriptions-item label="机构名称">{{ organName(currentRow) }}</el-descriptions-item>
         <el-descriptions-item label="编码">{{ currentRow?.categoryCode }}</el-descriptions-item>
         <el-descriptions-item label="名称">{{ currentRow?.categoryName }}</el-descriptions-item>
         <el-descriptions-item label="状态">{{ statusLabel(currentRow?.status) }}</el-descriptions-item>
@@ -120,8 +127,10 @@ import { KnowledgeCategoryApi } from './api';
 import type { KnowledgeCategory, KnowledgeCategoryPayload, KnowledgeCategoryQuery } from './type';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
+import { OrganSelect } from '@g2rain/ui/platform';
 import { showErrorMessage } from '@/components';
 import { compactQuery } from '@shared/knowledge/entity';
+import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
 import { ITEM_STATUS_OPTIONS } from '@/views/knowledge_revision/status';
 
 const statusOptions = ITEM_STATUS_OPTIONS;
@@ -130,6 +139,7 @@ const statusLabel = (status?: string) => statusOptions.find((o) => o.value === s
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
 const queryForm = reactive({
+  organId: undefined as number | null | undefined,
   categoryCode: '',
   categoryName: '',
   status: '',
@@ -147,6 +157,7 @@ const loadData = async () => {
     } as PageSelectListDto & KnowledgeCategoryQuery);
     tableData.value = pageData.records;
     pagination.total = pageData.total;
+    await ensureOrganNames(pageData.records);
   } catch (error: unknown) {
     showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_LOAD_FAIL', '加载列表失败'));
   }
@@ -159,6 +170,7 @@ const handleSearch = () => {
 };
 const handleReset = () => {
   baseQueryForm.value = {};
+  queryForm.organId = undefined;
   queryForm.categoryCode = '';
   queryForm.categoryName = '';
   queryForm.status = '';

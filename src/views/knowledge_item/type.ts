@@ -9,6 +9,8 @@ import type { BaseSelectListDto, BaseVo } from '@platform/types/api.type';
  */
 export interface KnowledgeItem extends BaseVo {
   organId: number;
+  /** 列表接口可能附带；优先用于表格展示 */
+  organName?: string;
   categoryId: number;
   knowledgeKey: string;
   knowledgeName: string;

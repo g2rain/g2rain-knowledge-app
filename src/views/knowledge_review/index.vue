@@ -2,6 +2,9 @@
   <div class="knowledge_review-page">
     <el-card class="knowledge_review-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
+        <el-form-item label="所属机构">
+          <OrganSelect v-model="queryForm.organId" />
+        </el-form-item>
         <el-form-item label="知识名称">
           <el-input v-model="queryForm.knowledgeName" placeholder="按主题名称筛选" clearable style="width: 200px" />
         </el-form-item>
@@ -39,6 +42,9 @@
           height="100%"
           @current-change="onSelectRow"
         >
+          <el-table-column label="机构名称" min-width="120" show-overflow-tooltip>
+            <template #default="{ row }">{{ organName(row) }}</template>
+          </el-table-column>
           <el-table-column prop="knowledgeName" label="知识名称" min-width="140" show-overflow-tooltip />
           <el-table-column prop="revisionNo" label="版本" width="100" />
           <el-table-column prop="sourceType" label="类型" width="80">
@@ -92,6 +98,7 @@
             </div>
           </div>
           <el-descriptions :column="1" border class="detail-descriptions">
+            <el-descriptions-item label="机构名称">{{ organName(current) }}</el-descriptions-item>
             <el-descriptions-item label="类型">{{ typeLabel(current.sourceType) }}</el-descriptions-item>
             <el-descriptions-item label="优先级">{{ current.itemPriority ?? 0 }}</el-descriptions-item>
             <el-descriptions-item label="标签">{{ formatTags(current.itemTagsJson) }}</el-descriptions-item>
@@ -121,9 +128,11 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { t } from '@platform/i18n';
 import { QueryForm } from '@g2rain/ui';
+import { OrganSelect } from '@g2rain/ui/platform';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { showErrorMessage } from '@/components';
 import { compactQuery } from '@shared/knowledge/entity';
+import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
 import { KnowledgeRevisionApi } from '@/views/knowledge_revision/api';
 import type { KnowledgeRevision, KnowledgeRevisionQuery } from '@/views/knowledge_revision/type';
 import { KnowledgeItemApi } from '@/views/knowledge_item/api';
@@ -142,6 +151,7 @@ const typeLabel = resolveTypeLabel;
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
 const queryForm = reactive({
+  organId: undefined as number | null | undefined,
   knowledgeName: '',
   revisionNo: '',
   revisionStatus: 'REVIEWING',
@@ -225,6 +235,7 @@ const loadData = async () => {
 
     tableData.value = rows;
     pagination.total = knowledgeName.trim() ? rows.length : pageData.total;
+    await ensureOrganNames(rows);
     if (current.value) {
       const still = rows.find((r) => r.id === current.value?.id);
       current.value = still || null;
@@ -242,6 +253,7 @@ const handleSearch = () => {
 };
 const handleReset = () => {
   baseQueryForm.value = {};
+  queryForm.organId = undefined;
   queryForm.knowledgeName = '';
   queryForm.revisionNo = '';
   queryForm.revisionStatus = 'REVIEWING';

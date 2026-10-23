@@ -2,6 +2,9 @@
   <div class="knowledge_task-page">
     <el-card class="knowledge_task-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
+        <el-form-item label="所属机构">
+          <OrganSelect v-model="queryForm.organId" />
+        </el-form-item>
         <el-form-item label="队列类型">
           <el-select v-model="queryForm.queueType" style="width: 160px" @change="handleSearch">
             <el-option
@@ -33,6 +36,9 @@
     </div>
 
     <el-table v-loading="loading" :data="tableData" border stripe style="width: 100%">
+      <el-table-column label="机构名称" min-width="140" show-overflow-tooltip>
+        <template #default="{ row }">{{ organName(row) }}</template>
+      </el-table-column>
       <el-table-column prop="knowledgeName" label="知识名称" min-width="160" show-overflow-tooltip />
       <el-table-column prop="revisionNo" label="版本号" width="110" />
       <template v-if="isPendingQueue">
@@ -98,6 +104,7 @@
 
     <el-drawer v-model="detailVisible" title="任务详情" :size="OVERLAY_SIZE.drawer" destroy-on-close>
       <el-descriptions v-if="detail" :column="1" border>
+        <el-descriptions-item label="机构名称">{{ organName(detail) }}</el-descriptions-item>
         <el-descriptions-item label="知识名称">{{ detail.knowledgeName }}</el-descriptions-item>
         <el-descriptions-item label="版本号">{{ detail.revisionNo }}</el-descriptions-item>
         <el-descriptions-item label="任务类型">{{ detail.taskType }}</el-descriptions-item>
@@ -118,9 +125,11 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { QueryForm } from '@g2rain/ui';
+import { OrganSelect } from '@g2rain/ui/platform';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { showErrorMessage } from '@/components';
 import { compactQuery } from '@shared/knowledge/entity';
+import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
 import { OVERLAY_SIZE, POLL_INTERVAL_MS } from '@shared/knowledge/overlay';
 import { KnowledgeTaskApi } from './api';
 import type { KnowledgeTask } from './type';
@@ -139,6 +148,8 @@ interface TaskRow extends Partial<KnowledgeTask> {
   revisionId: number;
   id?: number;
   updateTime?: string;
+  organId?: number;
+  organName?: string;
 }
 
 const queueOptions: Array<{ label: string; value: QueueType }> = [
@@ -161,6 +172,7 @@ const QUEUE_TASK_STATUS: Partial<Record<QueueType, string>> = {
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
 const queryForm = reactive({
+  organId: undefined as number | null | undefined,
   queueType: 'pending' as QueueType,
   knowledgeName: '',
   revisionNo: '',
@@ -233,6 +245,7 @@ const loadPending = async () => {
   const revisionNo = queryForm.revisionNo;
   const query = compactQuery({
     ...baseQueryForm.value,
+    organId: queryForm.organId,
     revisionStatus: 'APPROVED',
     revisionNo: revisionNo.trim() || undefined,
   }) as KnowledgeRevisionQuery;
@@ -255,6 +268,8 @@ const loadPending = async () => {
       }
       return {
         revisionId: r.id,
+        organId: r.organId,
+        organName: r.organName,
         knowledgeName: itemNameCache.value[r.knowledgeId],
         revisionNo: r.revisionNo,
         revisionStatus: r.revisionStatus,
@@ -270,6 +285,7 @@ const loadPending = async () => {
 
   tableData.value = rows;
   pagination.total = knowledgeName.trim() ? rows.length : pageData.total;
+  await ensureOrganNames(rows);
 };
 
 const loadTasks = async () => {
@@ -278,6 +294,7 @@ const loadTasks = async () => {
 
   const query = compactQuery({
     ...baseQueryForm.value,
+    organId: queryForm.organId,
     taskStatus,
   }) as KnowledgeTaskQuery;
 
@@ -290,7 +307,7 @@ const loadTasks = async () => {
   let rows: TaskRow[] = await Promise.all(
     pageData.records.map(async (task) => {
       const meta = await resolveRevisionMeta(task.revisionId);
-      return { ...task, ...meta };
+      return { ...task, ...meta, organId: task.organId, organName: task.organName };
     }),
   );
 
@@ -299,6 +316,7 @@ const loadTasks = async () => {
   const clientFiltered =
     Boolean(queryForm.knowledgeName.trim()) || Boolean(queryForm.revisionNo.trim());
   pagination.total = clientFiltered ? filtered.length : pageData.total;
+  await ensureOrganNames(filtered);
 };
 
 const loadData = async () => {
@@ -334,6 +352,7 @@ const handleSearch = () => {
 };
 
 const handleReset = () => {
+  queryForm.organId = undefined;
   queryForm.queueType = 'pending';
   queryForm.knowledgeName = '';
   queryForm.revisionNo = '';
