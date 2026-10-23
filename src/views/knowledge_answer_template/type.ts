@@ -9,6 +9,7 @@ import type { BaseSelectListDto, BaseVo } from '@platform/types/api.type';
  */
 export interface KnowledgeAnswerTemplate extends BaseVo {
   organId: number;
+  organName?: string;
   templateCode: string;
   templateName: string;
   systemPrompt: string;

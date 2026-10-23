@@ -9,12 +9,16 @@ import type { BaseSelectListDto, BaseVo } from '@platform/types/api.type';
  */
 export interface KnowledgeItem extends BaseVo {
   organId: number;
+  /** 列表接口可能附带；优先用于表格展示 */
+  organName?: string;
   categoryId: number;
   knowledgeKey: string;
   knowledgeName: string;
   knowledgeType: string;
   status: string;
   description: string;
+  priority: number;
+  tagsJson: string;
   createUserId: number;
 }
 
@@ -30,6 +34,8 @@ export interface KnowledgeItemPayload {
   knowledgeType?: string;
   status?: string;
   description?: string;
+  priority?: number;
+  tagsJson?: string;
 }
 
 /**
@@ -47,5 +53,31 @@ export interface KnowledgeItemQuery extends BaseSelectListDto {
   status?: string;
   description?: string;
   createUserId?: number;
+}
+
+/** 批量导入选项 */
+export interface KnowledgeImportOptions {
+  categoryId?: number;
+  tags?: string[];
+  priority?: number;
+  submitReview?: boolean;
+}
+
+/** 批量导入单条结果 */
+export interface KnowledgeImportItem {
+  knowledgeKey?: string;
+  itemStatus: 'SUCCESS' | 'SKIPPED' | 'FAILED' | string;
+  knowledgeId?: number;
+  revisionId?: number;
+  errorCode?: string;
+  errorMessage?: string;
+}
+
+/** 批量导入汇总结果 */
+export interface KnowledgeImportResult {
+  successCount: number;
+  skippedCount: number;
+  failedCount: number;
+  items: KnowledgeImportItem[];
 }
 

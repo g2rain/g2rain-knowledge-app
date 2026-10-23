@@ -9,6 +9,7 @@ import type { BaseSelectListDto, BaseVo } from '@platform/types/api.type';
  */
 export interface KnowledgeTag extends BaseVo {
   organId: number;
+  organName?: string;
   tagCode: string;
   tagName: string;
   status: string;
