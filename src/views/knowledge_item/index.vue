@@ -296,6 +296,7 @@ import type {
 } from './type';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
+import { OrganSelect } from '@g2rain/ui/platform';
 import { compactQuery } from '@shared/knowledge/entity';
 import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
 import { OVERLAY_SIZE } from '@shared/knowledge/overlay';
