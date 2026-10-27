@@ -2,6 +2,9 @@
   <div class="knowledge_release-page">
     <el-card class="knowledge_release-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
+        <el-form-item label="所属机构">
+          <OrganSelect v-model="queryForm.organId" />
+        </el-form-item>
         <el-form-item label="视图类型">
           <el-select v-model="queryForm.viewType" style="width: 160px" @change="handleSearch">
             <el-option label="待发布" value="ready" />
@@ -29,6 +32,9 @@
     </div>
 
     <el-table v-loading="loading" :data="tableData" border stripe style="width: 100%">
+      <el-table-column label="机构名称" min-width="140" show-overflow-tooltip>
+        <template #default="{ row }">{{ organName(row) }}</template>
+      </el-table-column>
       <el-table-column prop="knowledgeName" label="知识名称" min-width="160" show-overflow-tooltip />
       <el-table-column prop="revisionNo" label="版本号" width="120" />
       <el-table-column
@@ -102,8 +108,10 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { QueryForm } from '@g2rain/ui';
+import { OrganSelect } from '@g2rain/ui/platform';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { compactQuery } from '@shared/knowledge/entity';
+import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
 import { OVERLAY_SIZE } from '@shared/knowledge/overlay';
 import { KnowledgeReleaseApi } from './api';
 import type { KnowledgeRelease, KnowledgeReleaseQuery } from './type';
@@ -115,6 +123,8 @@ import { getRevisionStatusInfo } from '@/views/knowledge_revision/status';
 type ViewType = 'ready' | 'online';
 
 interface ReleaseRow {
+  organId?: number;
+  organName?: string;
   knowledgeId: number;
   knowledgeName: string;
   revisionId: number;
@@ -131,6 +141,7 @@ interface ReleaseRow {
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
 const queryForm = reactive({
+  organId: undefined as number | null | undefined,
   viewType: 'ready' as ViewType,
   knowledgeName: '',
   revisionNo: '',
@@ -178,6 +189,7 @@ const loadReady = async () => {
   const revisionNo = queryForm.revisionNo;
   const query = compactQuery({
     ...baseQueryForm.value,
+    organId: queryForm.organId,
     revisionStatus: 'READY_TO_PUBLISH',
     revisionNo: revisionNo.trim() || undefined,
   }) as KnowledgeRevisionQuery;
@@ -193,6 +205,8 @@ const loadReady = async () => {
       const releases = await KnowledgeReleaseApi.list({ knowledgeId: r.knowledgeId });
       const release = releases[0];
       return {
+        organId: r.organId,
+        organName: r.organName,
         knowledgeId: r.knowledgeId,
         knowledgeName: await resolveItemName(r.knowledgeId),
         revisionId: r.id,
@@ -212,11 +226,13 @@ const loadReady = async () => {
 
   tableData.value = rows;
   pagination.total = knowledgeName.trim() ? rows.length : pageData.total;
+  await ensureOrganNames(rows);
 };
 
 const loadOnline = async () => {
   const query = compactQuery({
     ...baseQueryForm.value,
+    organId: queryForm.organId,
     releaseStatus: 'PUBLISHED',
   }) as KnowledgeReleaseQuery;
 
@@ -240,6 +256,8 @@ const loadOnline = async () => {
           /* ignore */
         }
         return {
+          organId: release.organId,
+          organName: release.organName,
           knowledgeId: release.knowledgeId,
           knowledgeName: await resolveItemName(release.knowledgeId),
           revisionId: release.activeRevisionId,
@@ -259,6 +277,7 @@ const loadOnline = async () => {
   const clientFiltered =
     Boolean(queryForm.knowledgeName.trim()) || Boolean(queryForm.revisionNo.trim());
   pagination.total = clientFiltered ? filtered.length : pageData.total;
+  await ensureOrganNames(filtered);
 };
 
 const loadData = async () => {
@@ -280,6 +299,7 @@ const handleSearch = () => {
 
 const handleReset = () => {
   baseQueryForm.value = {};
+  queryForm.organId = undefined;
   queryForm.viewType = 'ready';
   queryForm.knowledgeName = '';
   queryForm.revisionNo = '';

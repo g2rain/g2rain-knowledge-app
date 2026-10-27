@@ -2,6 +2,9 @@
   <div class="knowledge_review-page">
     <el-card class="knowledge_review-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
+        <el-form-item label="所属机构">
+          <OrganSelect v-model="queryForm.organId" />
+        </el-form-item>
         <el-form-item label="知识名称">
           <el-input v-model="queryForm.knowledgeName" placeholder="按主题名称筛选" clearable style="width: 200px" />
         </el-form-item>
@@ -39,12 +42,15 @@
           height="100%"
           @current-change="onSelectRow"
         >
+          <el-table-column label="机构名称" min-width="120" show-overflow-tooltip>
+            <template #default="{ row }">{{ organName(row) }}</template>
+          </el-table-column>
           <el-table-column prop="knowledgeName" label="知识名称" min-width="140" show-overflow-tooltip />
           <el-table-column prop="revisionNo" label="版本" width="100" />
           <el-table-column prop="sourceType" label="类型" width="80">
             <template #default="{ row }">{{ typeLabel(row.sourceType) }}</template>
           </el-table-column>
-          <el-table-column prop="priority" label="优先级" width="80" />
+          <el-table-column prop="itemPriority" label="优先级" width="80" />
           <el-table-column prop="updateTime" label="更新时间" width="160" />
         </el-table>
         <el-empty v-if="!loading && !tableData.length" :description="emptyText" :image-size="80" />
@@ -64,8 +70,10 @@
       <div class="knowledge_review-page__detail" v-loading="detailLoading">
         <template v-if="current">
           <div class="detail-toolbar">
-            <h3>{{ current.knowledgeName }} · {{ current.revisionNo }}</h3>
-            <div>
+            <h3 :title="`${current.knowledgeName} · ${current.revisionNo}`">
+              {{ current.knowledgeName }} · {{ current.revisionNo }}
+            </h3>
+            <div class="detail-toolbar__actions">
               <el-button
                 v-if="current.sourceType === 'FILE' && current.sourceFileName"
                 v-permission="'knowledge_revision:download-source'"
@@ -89,10 +97,11 @@
               </el-button>
             </div>
           </div>
-          <el-descriptions :column="1" border>
+          <el-descriptions :column="1" border class="detail-descriptions">
+            <el-descriptions-item label="机构名称">{{ organName(current) }}</el-descriptions-item>
             <el-descriptions-item label="类型">{{ typeLabel(current.sourceType) }}</el-descriptions-item>
-            <el-descriptions-item label="优先级">{{ current.priority }}</el-descriptions-item>
-            <el-descriptions-item label="标签">{{ formatTags(current.tagsJson) }}</el-descriptions-item>
+            <el-descriptions-item label="优先级">{{ current.itemPriority ?? 0 }}</el-descriptions-item>
+            <el-descriptions-item label="标签">{{ formatTags(current.itemTagsJson) }}</el-descriptions-item>
             <el-descriptions-item v-if="current.sourceType === 'FAQ'" label="标准问题">
               {{ current.faqQuestion }}
             </el-descriptions-item>
@@ -100,7 +109,9 @@
               <pre class="block-text">{{ current.faqAnswer }}</pre>
             </el-descriptions-item>
             <el-descriptions-item v-else label="源文件">
-              {{ current.sourceFileName || '未上传' }}
+              <div class="source-file" :title="current.sourceFileName || ''">
+                {{ current.sourceFileName || '未上传' }}
+              </div>
               <div class="field-tip">文件请下载后在本地查看；下载成功不等于审核完成</div>
             </el-descriptions-item>
             <el-descriptions-item label="审核意见">{{ current.reviewComment || '-' }}</el-descriptions-item>
@@ -116,8 +127,10 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { QueryForm } from '@g2rain/ui';
+import { OrganSelect } from '@g2rain/ui/platform';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { compactQuery } from '@shared/knowledge/entity';
+import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
 import { KnowledgeRevisionApi } from '@/views/knowledge_revision/api';
 import type { KnowledgeRevision, KnowledgeRevisionQuery } from '@/views/knowledge_revision/type';
 import { KnowledgeItemApi } from '@/views/knowledge_item/api';
@@ -127,6 +140,8 @@ import { resolveTypeLabel } from '@/views/knowledge_revision/status';
 
 interface ReviewRow extends KnowledgeRevision {
   knowledgeName?: string;
+  itemPriority?: number;
+  itemTagsJson?: string;
 }
 
 const typeLabel = resolveTypeLabel;
@@ -134,6 +149,7 @@ const typeLabel = resolveTypeLabel;
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
 const queryForm = reactive({
+  organId: undefined as number | null | undefined,
   knowledgeName: '',
   revisionNo: '',
   revisionStatus: 'REVIEWING',
@@ -145,6 +161,7 @@ const loading = ref(false);
 const detailLoading = ref(false);
 const tagOptions = ref<KnowledgeTag[]>([]);
 const itemNameMap = ref<Record<number, string>>({});
+const itemMetaMap = ref<Record<number, { priority: number; tagsJson?: string }>>({});
 
 const emptyText = computed(() => {
   if (queryForm.revisionStatus === 'REVIEWING') return '暂无待审核内容，可切换其他状态查看';
@@ -176,12 +193,14 @@ const resolveKnowledgeNames = async (rows: KnowledgeRevision[]) => {
   const ids = [...new Set(rows.map((r) => r.knowledgeId).filter(Boolean))];
   await Promise.all(
     ids.map(async (id) => {
-      if (itemNameMap.value[id]) return;
+      if (itemNameMap.value[id] && itemMetaMap.value[id]) return;
       try {
         const item = await KnowledgeItemApi.getById(id);
         itemNameMap.value[id] = item.knowledgeName;
+        itemMetaMap.value[id] = { priority: item.priority ?? 0, tagsJson: item.tagsJson };
       } catch {
         itemNameMap.value[id] = `#${id}`;
+        itemMetaMap.value[id] = { priority: 0 };
       }
     }),
   );
@@ -203,6 +222,8 @@ const loadData = async () => {
     rows = rows.map((r) => ({
       ...r,
       knowledgeName: itemNameMap.value[r.knowledgeId] || `#${r.knowledgeId}`,
+      itemPriority: itemMetaMap.value[r.knowledgeId]?.priority ?? 0,
+      itemTagsJson: itemMetaMap.value[r.knowledgeId]?.tagsJson,
     }));
 
     if (knowledgeName.trim()) {
@@ -212,6 +233,7 @@ const loadData = async () => {
 
     tableData.value = rows;
     pagination.total = knowledgeName.trim() ? rows.length : pageData.total;
+    await ensureOrganNames(rows);
     if (current.value) {
       const still = rows.find((r) => r.id === current.value?.id);
       current.value = still || null;
@@ -229,6 +251,7 @@ const handleSearch = () => {
 };
 const handleReset = () => {
   baseQueryForm.value = {};
+  queryForm.organId = undefined;
   queryForm.knowledgeName = '';
   queryForm.revisionNo = '';
   queryForm.revisionStatus = 'REVIEWING';
@@ -253,9 +276,22 @@ const onSelectRow = async (row: ReviewRow | null) => {
   detailLoading.value = true;
   try {
     const latest = await KnowledgeRevisionApi.getById(row.id);
+    let meta = itemMetaMap.value[latest.knowledgeId];
+    let knowledgeName = itemNameMap.value[latest.knowledgeId] || row.knowledgeName;
+    try {
+      const item = await KnowledgeItemApi.getById(latest.knowledgeId);
+      knowledgeName = item.knowledgeName;
+      meta = { priority: item.priority ?? 0, tagsJson: item.tagsJson };
+      itemNameMap.value[latest.knowledgeId] = knowledgeName;
+      itemMetaMap.value[latest.knowledgeId] = meta;
+    } catch {
+      /* 沿用列表侧已解析的主题元数据 */
+    }
     current.value = {
       ...latest,
-      knowledgeName: itemNameMap.value[latest.knowledgeId] || row.knowledgeName,
+      knowledgeName,
+      itemPriority: meta?.priority ?? row.itemPriority ?? 0,
+      itemTagsJson: meta?.tagsJson ?? row.itemTagsJson,
     };
   } finally {
     detailLoading.value = false;
@@ -374,10 +410,33 @@ onMounted(async () => {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+  min-width: 0;
 }
 .detail-toolbar h3 {
   margin: 0;
   font-size: 16px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.detail-toolbar__actions {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+}
+.detail-descriptions :deep(.el-descriptions__content) {
+  min-width: 0;
+  word-break: break-all;
+}
+.source-file {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 .block-text {
   white-space: pre-wrap;

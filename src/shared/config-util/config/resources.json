@@ -118,6 +118,14 @@
     },
     {
       "parentId": null,
+      "pageElementName": "导入",
+      "pageElementCode": "knowledge_item:import",
+      "pageElementType": "button",
+      "pageCode": "knowledge_item",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
       "pageElementName": "publish",
       "pageElementCode": "knowledge_release:publish",
       "pageElementType": "button",

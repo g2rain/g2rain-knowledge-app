@@ -184,7 +184,7 @@ knowledge_release 只保存当前选择和最近一次发布信息，不能据�
 
 以上路径为 App 相对 `/api` 的调用路径。网关会剥掉服务前缀 `knowledge`，因此检索问答也要多一段，剥完后服务内才是 `/knowledge/retrieve` 与 `/knowledge/answer`。
 
-审核和上传使用 expectedVersion；任务动作使用任务自己的版本；发布和回滚分别使用 expectedReleaseVersion、expectedRevisionVersion。并发冲突保留输入，刷新后提示重新操作，不自动重放写请求。页面不提交 organId 决定租户边界。
+审核和上传使用 expectedVersion；任务动作使用任务自己的版本；发布和回滚分别使用 expectedReleaseVersion、expectedRevisionVersion。并发冲突保留输入，刷新后提示重新操作，不自动重放写请求。写路径不靠前端 `organId` 决定租户边界；列表查询可带 `organId`（运营公司筛选），组件用 `@g2rain/ui/platform` 的 `OrganSelect`。
 
 ## 6. 双壳集成契约
 

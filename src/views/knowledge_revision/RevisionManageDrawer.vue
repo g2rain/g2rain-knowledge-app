@@ -40,7 +40,6 @@
               <div class="muted">{{ getRevisionStatusInfo(row.revisionStatus).menuHint }}</div>
             </template>
           </el-table-column>
-          <el-table-column prop="priority" label="优先级" width="90" />
           <el-table-column prop="updateTime" label="更新时间" width="170" />
           <el-table-column label="操作" width="220" fixed="right">
             <template #default="{ row }">
@@ -104,8 +103,8 @@
               <el-descriptions-item label="版本号">{{ current.revisionNo }}</el-descriptions-item>
               <el-descriptions-item label="类型">{{ typeLabel(current.sourceType) }}</el-descriptions-item>
               <el-descriptions-item label="状态">{{ getRevisionStatusInfo(current.revisionStatus).label }}</el-descriptions-item>
-              <el-descriptions-item label="优先级">{{ current.priority }}</el-descriptions-item>
-              <el-descriptions-item label="标签">{{ formatTags(current.tagsJson) }}</el-descriptions-item>
+              <el-descriptions-item label="主题优先级">{{ item?.priority ?? 0 }}</el-descriptions-item>
+              <el-descriptions-item label="主题标签">{{ formatTags(item?.tagsJson) }}</el-descriptions-item>
               <template v-if="current.sourceType === 'FAQ'">
                 <el-descriptions-item label="标准问题">{{ current.faqQuestion }}</el-descriptions-item>
                 <el-descriptions-item label="标准答案">
@@ -203,26 +202,7 @@
             </el-upload>
           </el-form-item>
         </template>
-        <el-form-item label="标签">
-          <el-select
-            v-model="editForm.tagCodes"
-            multiple
-            filterable
-            clearable
-            placeholder="选择标签（提交编码）"
-            style="width: 100%"
-          >
-            <el-option
-              v-for="tag in tagOptions"
-              :key="tag.tagCode"
-              :label="`${tag.tagName}（${tag.tagCode}）`"
-              :value="tag.tagCode"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="优先级" prop="priority">
-          <el-input-number v-model="editForm.priority" :min="0" controls-position="right" style="width: 100%" />
-        </el-form-item>
+        <div class="field-tip" style="margin-bottom: 8px">标签与优先级请在知识主题编辑中维护</div>
       </el-form>
       <template #footer>
         <el-button @click="editVisible = false">取消</el-button>
@@ -372,8 +352,6 @@ const editForm = reactive({
   sourceType: 'FILE',
   faqQuestion: '',
   faqAnswer: '',
-  priority: 0,
-  tagCodes: [] as string[],
   file: null as File | null,
 });
 
@@ -429,8 +407,6 @@ const openCreate = async () => {
     sourceType: item.value?.knowledgeType === 'FAQ' ? 'FAQ' : 'FILE',
     faqQuestion: '',
     faqAnswer: '',
-    priority: 0,
-    tagCodes: [],
     file: null,
   });
   editVisible.value = true;
@@ -445,8 +421,6 @@ const openEdit = (row: KnowledgeRevision) => {
     sourceType: row.sourceType,
     faqQuestion: row.faqQuestion || '',
     faqAnswer: row.faqAnswer || '',
-    priority: row.priority ?? 0,
-    tagCodes: parseTagCodes(row.tagsJson),
     file: null,
   });
   editVisible.value = true;
@@ -466,8 +440,6 @@ const saveRevision = async () => {
       knowledgeId: props.knowledgeId,
       revisionNo: editForm.revisionNo,
       sourceType: editForm.sourceType,
-      priority: editForm.priority,
-      tagsJson: JSON.stringify(editForm.tagCodes || []),
     };
     if (editForm.sourceType === 'FAQ') {
       payload.faqQuestion = editForm.faqQuestion;

@@ -15,4 +15,12 @@ export class OrganApi {
     const res = await http.get<OrganIdNameMap[]>('/basis/organ/search', { id: params.value, organName: params.key }, { signal: params.signal });
     return res.data || [];
   }
+
+  /** 按机构 ID 批量解析名称（表格展示用） */
+  static async selectIdNameMap(ids: number[]): Promise<OrganIdNameMap[]> {
+    if (!ids.length) return [];
+    const http = getHttpClient('default');
+    const res = await http.post<OrganIdNameMap[]>('/basis/organ/id_name_map', { ids });
+    return res.data || [];
+  }
 }
