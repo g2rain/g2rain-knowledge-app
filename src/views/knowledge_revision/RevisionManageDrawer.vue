@@ -245,7 +245,6 @@ import type { KnowledgeChunk } from '@/views/knowledge_chunk/type';
 import { KnowledgeReleaseApi } from '@/views/knowledge_release/api';
 import { KnowledgeTagApi } from '@/views/knowledge_tag/api';
 import type { KnowledgeTag } from '@/views/knowledge_tag/type';
-import { showErrorMessage } from '@/components';
 import { OVERLAY_SIZE } from '@shared/knowledge/overlay';
 import {
   formatNextStepHint,
@@ -334,8 +333,8 @@ const loadData = async () => {
     } else if (props.autoCreate) {
       await openCreate();
     }
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '加载版本失败');
+  } catch {
+    // 请求失败已由 http 层统一提示
   } finally {
     loading.value = false;
   }
@@ -347,8 +346,8 @@ const openDetail = async (row: KnowledgeRevision) => {
     viewMode.value = 'detail';
     detailTab.value = 'content';
     chunks.value = await KnowledgeChunkApi.list({ revisionId: row.id });
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '加载版本详情失败');
+  } catch {
+    // 请求失败已由 http 层统一提示
   }
 };
 
@@ -360,11 +359,7 @@ const backToList = () => {
 
 const downloadCurrent = async () => {
   if (!current.value) return;
-  try {
-    await KnowledgeRevisionApi.downloadSource(current.value.id, current.value.sourceFileName || 'source');
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '下载失败');
-  }
+  await KnowledgeRevisionApi.downloadSource(current.value.id, current.value.sourceFileName || 'source');
 };
 
 const editVisible = ref(false);
@@ -494,8 +489,6 @@ const saveRevision = async () => {
     await loadData();
     const saved = revisions.value.find((r) => r.id === revisionId);
     if (saved) await openDetail(saved);
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '保存版本失败');
   } finally {
     saving.value = false;
   }
@@ -520,9 +513,8 @@ const submitReview = async (row: KnowledgeRevision) => {
       const refreshed = revisions.value.find((r) => r.id === latest.id);
       if (refreshed) await openDetail(refreshed);
     }
-  } catch (error: unknown) {
-    if (error === 'cancel' || error === 'close') return;
-    showErrorMessage(error instanceof Error ? error.message : '提交审核失败');
+  } catch {
+    /* 取消确认或请求失败已由 http 层统一提示 */
   }
 };
 

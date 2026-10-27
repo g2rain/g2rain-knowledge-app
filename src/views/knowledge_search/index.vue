@@ -149,7 +149,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
-import { showErrorMessage } from '@/components';
 import { KnowledgeSearchApi } from './api';
 import type { KnowledgeAnswerResult, KnowledgeEvidence, KnowledgeRetrieveResult } from './type';
 import { KnowledgeAnswerTemplateApi } from '@/views/knowledge_answer_template/api';
@@ -216,8 +215,6 @@ const runVerify = async () => {
     } else {
       result.value = await KnowledgeSearchApi.retrieve(payload);
     }
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '验证失败');
   } finally {
     loading.value = false;
   }

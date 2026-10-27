@@ -149,7 +149,6 @@ import { KnowledgeItemApi } from './api';
 import type { KnowledgeItem, KnowledgeItemPayload, KnowledgeItemQuery } from './type';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
-import { showErrorMessage } from '@/components';
 import { compactQuery } from '@shared/knowledge/entity';
 import { OVERLAY_SIZE } from '@shared/knowledge/overlay';
 import { ITEM_STATUS_OPTIONS, KNOWLEDGE_TYPE_OPTIONS, resolveTypeLabel } from '@/views/knowledge_revision/status';
@@ -218,8 +217,8 @@ const loadData = async () => {
     tableData.value = pageData.records;
     pagination.total = pageData.total;
     await loadActiveRevisions(pageData.records);
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_LOAD_FAIL', '加载列表失败'));
+  } catch {
+    // 请求失败已由 http 层统一提示
   }
 };
 
@@ -329,17 +328,13 @@ const submitEdit = async () => {
     payload.id = editForm.id;
     payload.version = editForm.version;
   }
-  try {
-    const id = await KnowledgeItemApi.save(payload);
-    ElMessage.success(isEdit.value ? t('G2_MSG_UPDATE_OK', '更新成功') : t('G2_MSG_ADD_OK', '新增成功'));
-    editDrawerVisible.value = false;
-    await loadData();
-    if (!isEdit.value) {
-      versionKnowledgeId.value = id;
-      versionDrawerVisible.value = true;
-    }
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_SAVE_FAIL', '保存失败'));
+  const id = await KnowledgeItemApi.save(payload);
+  ElMessage.success(isEdit.value ? t('G2_MSG_UPDATE_OK', '更新成功') : t('G2_MSG_ADD_OK', '新增成功'));
+  editDrawerVisible.value = false;
+  await loadData();
+  if (!isEdit.value) {
+    versionKnowledgeId.value = id;
+    versionDrawerVisible.value = true;
   }
 };
 
