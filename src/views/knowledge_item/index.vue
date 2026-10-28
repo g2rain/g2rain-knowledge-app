@@ -70,8 +70,15 @@
       <el-table-column prop="status" label="状态" width="90">
         <template #default="{ row }">{{ statusLabel(row.status) }}</template>
       </el-table-column>
+      <el-table-column label="共享范围" width="110">
+        <template #default="{ row }">
+          <el-tag :type="row.visibility === 'PUBLIC' ? 'success' : 'info'" size="small">
+            {{ row.visibility === 'PUBLIC' ? '公共' : '本机构' }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <TableColumn prop="updateTime" :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')" width="180" sortable="custom" />
-      <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" fixed="right" width="280">
+      <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" fixed="right" width="340">
         <template #default="{ row }">
           <el-button type="primary" link size="small" @click="openVersions(row)">查看版本</el-button>
           <el-button type="primary" link size="small" v-permission="'knowledge_revision:add'" @click="openVersions(row, true)">
@@ -79,6 +86,15 @@
           </el-button>
           <el-button type="primary" v-permission="'knowledge_item:edit'" link size="small" @click="handleEdit(row)">
             {{ $t('G2_BTN_EDIT', '编辑') }}
+          </el-button>
+          <el-button
+            v-if="isAdminCompany"
+            type="warning"
+            link
+            size="small"
+            @click="toggleVisibility(row)"
+          >
+            {{ row.visibility === 'PUBLIC' ? '设为私有' : '设为公共' }}
           </el-button>
         </template>
         <template #header>
@@ -283,9 +299,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import type { FormInstance, FormRules, UploadFile } from 'element-plus';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { t } from '@platform/i18n';
 import { KnowledgeItemApi } from './api';
 import type {
@@ -308,6 +324,11 @@ import type { KnowledgeTag } from '@/views/knowledge_tag/type';
 import { KnowledgeReleaseApi } from '@/views/knowledge_release/api';
 import { KnowledgeRevisionApi } from '@/views/knowledge_revision/api';
 import RevisionManageDrawer from '@/views/knowledge_revision/RevisionManageDrawer.vue';
+import { useAccessTokenStore } from '@platform/stores/token.store';
+import { showErrorMessage } from '@/components';
+
+const tokenStore = useAccessTokenStore();
+const isAdminCompany = computed(() => tokenStore.isAdminCompany);
 
 const statusOptions = ITEM_STATUS_OPTIONS;
 const typeOptions = KNOWLEDGE_TYPE_OPTIONS;
@@ -411,6 +432,27 @@ const openVersions = (row: KnowledgeItem, create = false) => {
   versionKnowledgeId.value = row.id;
   versionDrawerVisible.value = true;
   openCreateAfterVersion.value = create;
+};
+
+const toggleVisibility = async (row: KnowledgeItem) => {
+  const next = row.visibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
+  const label = next === 'PUBLIC' ? '公共（跨机构可读）' : '本机构私有';
+  try {
+    await ElMessageBox.confirm(
+      `将「${row.knowledgeName}」的共享范围改为${label}？已发布内容仍须用新版本改正文。`,
+      '设置共享范围',
+      { type: 'warning' },
+    );
+  } catch {
+    return;
+  }
+  try {
+    await KnowledgeItemApi.setVisibility(row.id, next, row.version);
+    ElMessage.success('共享范围已更新');
+    await loadData();
+  } catch (error: unknown) {
+    showErrorMessage(error instanceof Error ? error.message : '更新共享范围失败');
+  }
 };
 
 const editDrawerVisible = ref(false);

@@ -58,6 +58,16 @@ export class KnowledgeItemApi {
     await http.delete(`/knowledge/knowledge_item/${id}`);
   }
 
+  /** RQ-008 专用共享范围命令 */
+  static async setVisibility(knowledgeId: number, visibility: string, expectedVersion: number): Promise<void> {
+    const http = getHttpClient('default');
+    await http.post('/knowledge/knowledge_item/visibility', {
+      knowledgeId,
+      visibility,
+      expectedVersion,
+    });
+  }
+
   static async importItems(file: File, options?: KnowledgeImportOptions): Promise<KnowledgeImportResult> {
     const http = getHttpClient('default');
     const form = new FormData();
