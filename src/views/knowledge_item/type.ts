@@ -19,6 +19,7 @@ export interface KnowledgeItem extends BaseVo {
   description: string;
   priority: number;
   tagsJson: string;
+  visibility?: string;
   createUserId: number;
 }
 

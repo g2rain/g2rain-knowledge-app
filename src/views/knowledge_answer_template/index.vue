@@ -156,7 +156,6 @@ import type {
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
 import { OrganSelect } from '@g2rain/ui/platform';
-import { showErrorMessage } from '@/components';
 import { compactQuery } from '@shared/knowledge/entity';
 import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
 import { ITEM_STATUS_OPTIONS } from '@/views/knowledge_revision/status';
@@ -186,8 +185,8 @@ const loadData = async () => {
     tableData.value = pageData.records;
     pagination.total = pageData.total;
     await ensureOrganNames(pageData.records);
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_LOAD_FAIL', '加载列表失败'));
+  } catch {
+    // 请求失败已由 http 层统一提示
   }
 };
 
@@ -232,14 +231,10 @@ const handlePreview = (row: KnowledgeAnswerTemplate) => {
 const handleDelete = (row: KnowledgeAnswerTemplate) => {
   ElMessageBox.confirm(`确认删除模板「${row.templateName}」吗？`, t('G2_LBL_TIP', '提示'), { type: 'warning' })
     .then(async () => {
-      try {
-        await KnowledgeAnswerTemplateApi.remove(row.id);
-        if (tableData.value.length === 1 && pagination.pageNum > 1) pagination.pageNum--;
-        await loadData();
-        ElMessage.success(t('G2_MSG_DELETE_OK', '删除成功'));
-      } catch (error: unknown) {
-        showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_DELETE_FAIL', '删除失败'));
-      }
+      await KnowledgeAnswerTemplateApi.remove(row.id);
+      if (tableData.value.length === 1 && pagination.pageNum > 1) pagination.pageNum--;
+      await loadData();
+      ElMessage.success(t('G2_MSG_DELETE_OK', '删除成功'));
     })
     .catch(() => {});
 };
@@ -302,14 +297,10 @@ const submitEdit = async () => {
     remark: editForm.remark,
   };
   if (isEdit.value) payload.id = editForm.id;
-  try {
-    await KnowledgeAnswerTemplateApi.save(payload);
-    ElMessage.success(isEdit.value ? t('G2_MSG_UPDATE_OK', '更新成功') : t('G2_MSG_ADD_OK', '新增成功'));
-    await loadData();
-    editDialogVisible.value = false;
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_SAVE_FAIL', '保存失败'));
-  }
+  await KnowledgeAnswerTemplateApi.save(payload);
+  ElMessage.success(isEdit.value ? t('G2_MSG_UPDATE_OK', '更新成功') : t('G2_MSG_ADD_OK', '新增成功'));
+  await loadData();
+  editDialogVisible.value = false;
 };
 
 onMounted(() => loadData());

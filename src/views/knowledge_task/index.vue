@@ -324,8 +324,8 @@ const loadData = async () => {
   try {
     if (isPendingQueue.value) await loadPending();
     else await loadTasks();
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '加载失败');
+  } catch {
+    // 请求失败已由 http 层统一提示
   } finally {
     loading.value = false;
   }
@@ -378,9 +378,8 @@ const startProcess = async (row: TaskRow) => {
     await KnowledgeTaskApi.startProcess(row.revisionId);
     ElMessage.success('已开始处理，可在「待执行 / 运行中」查看进度');
     await loadData();
-  } catch (error: unknown) {
-    if (error === 'cancel' || error === 'close') return;
-    showErrorMessage(error instanceof Error ? error.message : '开始处理失败');
+  } catch {
+    /* 取消确认或请求失败已由 http 层统一提示 */
   }
 };
 
@@ -389,14 +388,12 @@ const retryTask = async (row: TaskRow) => {
     showErrorMessage('缺少任务版本，请刷新列表后重试');
     return;
   }
-  try {
-    await KnowledgeTaskApi.retry({ taskId: row.id, expectedVersion: row.version });
-    ElMessage.success('已提交重试，可继续处理本页其他任务');
-    await loadData();
-    startPoll();
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '重试失败');
-  }
+  await KnowledgeTaskApi.retry({ taskId: row.id, expectedVersion: row.version });
+  ElMessage.success('已提交重试');
+  queryForm.queueType = 'pending_task';
+  pagination.pageNum = 1;
+  await loadData();
+  startPoll();
 };
 
 const cancelTask = async (row: TaskRow) => {
@@ -410,9 +407,8 @@ const cancelTask = async (row: TaskRow) => {
     const revision = await KnowledgeRevisionApi.getById(row.revisionId);
     ElMessage.success(`任务已取消。当前版本状态：${getRevisionStatusInfo(revision.revisionStatus).label}`);
     await loadData();
-  } catch (error: unknown) {
-    if (error === 'cancel' || error === 'close') return;
-    showErrorMessage(error instanceof Error ? error.message : '取消失败');
+  } catch {
+    /* 取消确认或请求失败已由 http 层统一提示 */
   }
 };
 

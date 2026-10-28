@@ -14,7 +14,7 @@ npm ci
 
 不要在没有依赖升级需求时用 `npm install` 重写锁文件。模板包名仍是 `{{PROJECT_NAME}}` 属于正常占位符。
 
-本项目使用已发布的 `create-g2rain-app@1.0.0`，`npm ci`、`npm run build:generate` 和 `npm run build:config` 不需要相邻检出 CLI 仓库。需要查看工具实现或开发 CLI 本身时，可另行检出 [`g2rain-app-cli`](https://github.com/g2rain/g2rain-app-cli)；不要将本项目依赖回退为 `file:` 路径。Docker 构建同样不依赖相邻 CLI 目录。
+本项目将 `@g2rain/http`、`@g2rain/platform`、`@g2rain/theme`、`@g2rain/ui` 与开发工具 `create-g2rain-app` 固定为 `1.0.1`。`npm ci`、`npm run build:generate` 和 `npm run build:config` 不需要相邻检出 CLI 仓库。需要查看工具实现或开发 CLI 本身时，可另行检出 [`g2rain-app-cli`](https://github.com/g2rain/g2rain-app-cli)；不要将本项目依赖回退为 `file:` 路径。Docker 构建同样不依赖相邻 CLI 目录。
 
 ## 独立运行
 

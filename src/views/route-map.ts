@@ -16,7 +16,12 @@ export const routeMap: Record<string, ViewRouteConfig> = {
   '/knowledge_item': {
     component: () => import('@/views/knowledge_item/index.vue'),
     name: 'KnowledgeItem',
-    meta: { title: '知识内容', requiresAuth: true, showInHome: true },
+    meta: { title: '本机构知识', requiresAuth: true, showInHome: true },
+  },
+  '/knowledge_public': {
+    component: () => import('@/views/knowledge_public/index.vue'),
+    name: 'KnowledgePublic',
+    meta: { title: '公共知识', requiresAuth: true, showInHome: true },
   },
   '/knowledge_review': {
     component: () => import('@/views/knowledge_review/index.vue'),

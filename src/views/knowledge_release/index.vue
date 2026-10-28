@@ -110,7 +110,6 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { QueryForm } from '@g2rain/ui';
 import { OrganSelect } from '@g2rain/ui/platform';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
-import { showErrorMessage } from '@/components';
 import { compactQuery } from '@shared/knowledge/entity';
 import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
 import { OVERLAY_SIZE } from '@shared/knowledge/overlay';
@@ -286,8 +285,8 @@ const loadData = async () => {
   try {
     if (queryForm.viewType === 'ready') await loadReady();
     else await loadOnline();
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '加载失败');
+  } catch {
+    // 请求失败已由 http 层统一提示
   } finally {
     loading.value = false;
   }
@@ -319,7 +318,7 @@ const handlePageChange = (page: number) => {
   void loadData();
 };
 
-const ensureRelease = async (row: ReleaseRow): Promise<{ releaseId: number; releaseVersion: number }> => {
+const ensureRelease = async (row: ReleaseRow): Promise<{ releaseId: number; releaseVersion: number } | null> => {
   let releases = await KnowledgeReleaseApi.list({ knowledgeId: row.knowledgeId });
   if (!releases.length) {
     const id = await KnowledgeReleaseApi.save({ knowledgeId: row.knowledgeId });
@@ -329,13 +328,13 @@ const ensureRelease = async (row: ReleaseRow): Promise<{ releaseId: number; rele
     }
   }
   const release = releases[0];
-  if (!release) throw new Error('发布选择记录初始化失败，请重试');
-  return { releaseId: release.id, releaseVersion: release.version };
+  return release ? { releaseId: release.id, releaseVersion: release.version } : null;
 };
 
 const publishRow = async (row: ReleaseRow) => {
+  let reason: string | undefined;
   try {
-    const { value: reason } = await ElMessageBox.prompt(
+    ({ value: reason } = await ElMessageBox.prompt(
       `确认发布「${row.knowledgeName}」版本 ${row.revisionNo}？可填写变更原因。`,
       '发布确认',
       {
@@ -344,36 +343,34 @@ const publishRow = async (row: ReleaseRow) => {
         cancelButtonText: '取消',
         inputValue: '',
       },
-    ).catch((e) => {
-      throw e;
-    });
-
-    const revision = await KnowledgeRevisionApi.getById(row.revisionId);
-    const { releaseId } = await ensureRelease(row);
-    await KnowledgeReleaseApi.publish({
-      releaseId,
-      revisionId: revision.id,
-      reason: reason?.trim() || undefined,
-    });
-    ElMessage.success('发布成功。可通过「效果验证」检查结果');
-    await loadData();
-  } catch (error: unknown) {
-    if (error === 'cancel' || error === 'close') return;
-    showErrorMessage(error instanceof Error ? error.message : '发布失败');
+    ));
+  } catch {
+    // 取消发布
+    return;
   }
+
+  const revision = await KnowledgeRevisionApi.getById(row.revisionId);
+  const release = await ensureRelease(row);
+  if (!release) {
+    ElMessage.error('发布选择记录初始化失败，请重试');
+    return;
+  }
+  await KnowledgeReleaseApi.publish({
+    releaseId: release.releaseId,
+    revisionId: revision.id,
+    reason: reason?.trim() || undefined,
+  });
+  ElMessage.success('发布成功。可通过「效果验证」检查结果');
+  await loadData();
 };
 
 const openHistory = async (row: ReleaseRow) => {
   historyContext.value = row;
-  try {
-    const list = await KnowledgeRevisionApi.list({ knowledgeId: row.knowledgeId });
-    historyRows.value = list.filter((r) =>
-      ['PUBLISHED', 'DEPRECATED', 'READY_TO_PUBLISH'].includes(r.revisionStatus),
-    );
-    historyVisible.value = true;
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '加载历史版本失败');
-  }
+  const list = await KnowledgeRevisionApi.list({ knowledgeId: row.knowledgeId });
+  historyRows.value = list.filter((r) =>
+    ['PUBLISHED', 'DEPRECATED', 'READY_TO_PUBLISH'].includes(r.revisionStatus),
+  );
+  historyVisible.value = true;
 };
 
 const rollbackTo = async (target: KnowledgeRevision) => {
@@ -399,9 +396,8 @@ const rollbackTo = async (target: KnowledgeRevision) => {
     ElMessage.success('回滚成功。可通过「效果验证」检查结果');
     historyVisible.value = false;
     await loadData();
-  } catch (error: unknown) {
-    if (error === 'cancel' || error === 'close') return;
-    showErrorMessage(error instanceof Error ? error.message : '回滚失败');
+  } catch {
+    /* 取消确认或请求失败已由 http 层统一提示 */
   }
 };
 

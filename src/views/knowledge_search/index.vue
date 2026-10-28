@@ -60,6 +60,10 @@
             <el-form-item label="topK">
               <el-input-number v-model="form.topK" :min="1" :max="50" controls-position="right" />
             </el-form-item>
+            <el-form-item label="包含公共知识">
+              <el-switch v-model="form.includePublic" />
+              <div class="field-tip">默认关闭；开启后额外召回跨机构 PUBLIC 活动版本</div>
+            </el-form-item>
           </el-collapse-item>
         </el-collapse>
 
@@ -119,6 +123,9 @@
           >
             <pre class="source-content">{{ src.content }}</pre>
             <div class="source-meta">
+              <span>机构：{{ src.organId ?? '-' }}</span>
+              <span>分类：{{ src.categoryId ?? '-' }}</span>
+              <span>范围：{{ src.visibility || '-' }}</span>
               <span>版本：{{ src.revisionNo || '-' }}</span>
               <span>页码：{{ src.page ?? '-' }}</span>
               <span>引用：{{ src.citation || '-' }}</span>
@@ -149,7 +156,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
-import { showErrorMessage } from '@/components';
 import { KnowledgeSearchApi } from './api';
 import type { KnowledgeAnswerResult, KnowledgeEvidence, KnowledgeRetrieveResult } from './type';
 import { KnowledgeAnswerTemplateApi } from '@/views/knowledge_answer_template/api';
@@ -172,6 +178,7 @@ const form = reactive({
   allTagCodes: [] as string[],
   anyTagCodes: [] as string[],
   topK: undefined as number | undefined,
+  includePublic: false,
 });
 
 const isAnswerMode = computed(() => verifyMode.value === 'answer');
@@ -207,6 +214,7 @@ const runVerify = async () => {
       allTagCodes: form.allTagCodes.length ? form.allTagCodes : undefined,
       anyTagCodes: form.anyTagCodes.length ? form.anyTagCodes : undefined,
       topK: form.topK,
+      includePublic: form.includePublic || undefined,
     };
     if (isAnswerMode.value) {
       result.value = await KnowledgeSearchApi.answer({
@@ -216,8 +224,6 @@ const runVerify = async () => {
     } else {
       result.value = await KnowledgeSearchApi.retrieve(payload);
     }
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '验证失败');
   } finally {
     loading.value = false;
   }

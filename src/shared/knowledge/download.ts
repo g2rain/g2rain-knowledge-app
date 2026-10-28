@@ -1,3 +1,4 @@
+import { ElMessage } from 'element-plus';
 import { getHttpClient } from '@runtime/http';
 
 function parseFilename(contentDisposition?: string): string | undefined {
@@ -14,8 +15,19 @@ function parseFilename(contentDisposition?: string): string | undefined {
   return plain?.[1]?.trim();
 }
 
+/** 读取 JSON 错误体里的 errorMessage，解析失败时返回默认文案 */
+async function readErrorMessage(blob: Blob): Promise<string> {
+  try {
+    const json = JSON.parse(await blob.text()) as { errorMessage?: string };
+    return json.errorMessage || '下载失败';
+  } catch {
+    return '下载失败';
+  }
+}
+
 /**
  * 受控下载二进制附件，读取服务端文件名并释放 object URL。
+ * 请求失败由 http 层统一提示；HTTP 200 但返回错误体时在这里提示。
  */
 export async function downloadAuthenticatedFile(
   url: string,
@@ -32,22 +44,14 @@ export async function downloadAuthenticatedFile(
 
   const data = res.data as unknown;
   if (data && typeof data === 'object' && !(data instanceof Blob) && 'errorMessage' in data) {
-    const err = data as { errorMessage?: string };
-    throw new Error(err.errorMessage || '下载失败');
+    ElMessage.error((data as { errorMessage?: string }).errorMessage || '下载失败');
+    return;
   }
 
   const blob = data instanceof Blob ? data : new Blob([data as BlobPart]);
   if (blob.type?.includes('application/json')) {
-    const text = await blob.text();
-    try {
-      const json = JSON.parse(text) as { errorMessage?: string };
-      throw new Error(json.errorMessage || '下载失败');
-    } catch (e) {
-      if (e instanceof Error && e.message !== '下载失败' && !e.message.includes('JSON')) {
-        throw e;
-      }
-      throw new Error('下载失败');
-    }
+    ElMessage.error(await readErrorMessage(blob));
+    return;
   }
 
   const headers = (res as { headers?: Record<string, string> }).headers;

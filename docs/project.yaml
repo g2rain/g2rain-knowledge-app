@@ -29,6 +29,10 @@ toolchain:
   ui: Element Plus
   state: Pinia
 
+dependencies:
+  appkitVersion: "1.0.1"
+  cliVersion: "1.0.1"
+
 generation:
   cli:
     name: create-g2rain-app

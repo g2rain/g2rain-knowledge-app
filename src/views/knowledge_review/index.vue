@@ -126,11 +126,9 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { t } from '@platform/i18n';
 import { QueryForm } from '@g2rain/ui';
 import { OrganSelect } from '@g2rain/ui/platform';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
-import { showErrorMessage } from '@/components';
 import { compactQuery } from '@shared/knowledge/entity';
 import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
 import { KnowledgeRevisionApi } from '@/views/knowledge_revision/api';
@@ -240,8 +238,8 @@ const loadData = async () => {
       const still = rows.find((r) => r.id === current.value?.id);
       current.value = still || null;
     }
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_LOAD_FAIL', '加载列表失败'));
+  } catch {
+    // 请求失败已由 http 层统一提示
   } finally {
     loading.value = false;
   }
@@ -295,8 +293,6 @@ const onSelectRow = async (row: ReviewRow | null) => {
       itemPriority: meta?.priority ?? row.itemPriority ?? 0,
       itemTagsJson: meta?.tagsJson ?? row.itemTagsJson,
     };
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '加载详情失败');
   } finally {
     detailLoading.value = false;
   }
@@ -304,14 +300,10 @@ const onSelectRow = async (row: ReviewRow | null) => {
 
 const downloadSource = async () => {
   if (!current.value) return;
-  try {
-    await KnowledgeRevisionApi.downloadSource(
-      current.value.id,
-      current.value.sourceFileName || 'source',
-    );
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '下载失败');
-  }
+  await KnowledgeRevisionApi.downloadSource(
+    current.value.id,
+    current.value.sourceFileName || 'source',
+  );
 };
 
 const approveReview = async () => {
@@ -326,9 +318,8 @@ const approveReview = async () => {
     ElMessage.success('审核已通过，等待处理。下一站：知识处理');
     current.value = null;
     await loadData();
-  } catch (error: unknown) {
-    if (error === 'cancel' || error === 'close') return;
-    showErrorMessage(error instanceof Error ? error.message : '审核失败');
+  } catch {
+    /* 取消确认或请求失败已由 http 层统一提示 */
   }
 };
 
@@ -351,9 +342,8 @@ const rejectReview = async () => {
     ElMessage.success('已驳回，内容返回草稿。可在知识内容中继续修改');
     current.value = null;
     await loadData();
-  } catch (error: unknown) {
-    if (error === 'cancel' || error === 'close') return;
-    showErrorMessage(error instanceof Error ? error.message : '驳回失败');
+  } catch {
+    /* 取消确认或请求失败已由 http 层统一提示 */
   }
 };
 
