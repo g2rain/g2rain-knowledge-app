@@ -36,6 +36,12 @@ const httpClientOptionsMap: Record<HttpClientType, ClientOptionsEntry> = {
     isDirectResponse: false,
     dpop: { applicationCode: env.VITE_APPLICATION_CODE },
   },
+  download: {
+    baseURL: `${env.VITE_CONTEXT_PATH}/api`,
+    withAuth: true,
+    isDirectResponse: true,
+    dpop: { applicationCode: env.VITE_APPLICATION_CODE },
+  },
   auth: {
     baseURL: env.VITE_CONTEXT_PATH,
     withAuth: false,
@@ -86,6 +92,9 @@ export function getHttpClient<T extends HttpClientType = 'default'>(
 export function setHttpClientOptions(type: HttpClientType, options: ClientOptionsEntry): void {
   httpClientOptionsMap[type] = options;
   disposeClient(type);
+  if (type === 'default') {
+    setHttpClientOptions('download', { ...options, isDirectResponse: true });
+  }
 }
 
 /**
@@ -95,11 +104,10 @@ export function updateHttpClientOptions(
   type: HttpClientType,
   patch: Partial<ClientOptionsEntry>,
 ): void {
-  httpClientOptionsMap[type] = {
+  setHttpClientOptions(type, {
     ...httpClientOptionsMap[type],
     ...patch,
-  };
-  disposeClient(type);
+  });
 }
 
 /**

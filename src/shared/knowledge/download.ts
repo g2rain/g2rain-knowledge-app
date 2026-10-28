@@ -34,28 +34,35 @@ export async function downloadAuthenticatedFile(
   fallbackName: string,
   params?: object,
 ): Promise<void> {
-  const http = getHttpClient('default');
-  const res = await http.request<Blob>({
+  const http = getHttpClient('download');
+  let disposition: string | undefined;
+  const data: unknown = await http.request<Blob>({
     url,
     method: 'GET',
     params,
     responseType: 'blob',
+    // Client 返回响应体；在转换阶段保留附件名，不能把响应体当作 AxiosResponse。
+    transformResponse: [(body: unknown, headers) => {
+      disposition = headers['content-disposition'] || headers['Content-Disposition'];
+      return body;
+    }],
   });
 
-  const data = res.data as unknown;
   if (data && typeof data === 'object' && !(data instanceof Blob) && 'errorMessage' in data) {
     ElMessage.error((data as { errorMessage?: string }).errorMessage || '下载失败');
     return;
   }
 
-  const blob = data instanceof Blob ? data : new Blob([data as BlobPart]);
+  if (!(data instanceof Blob) || data.size === 0) {
+    ElMessage.error('下载失败：文件内容为空或响应格式错误');
+    return;
+  }
+  const blob = data;
   if (blob.type?.includes('application/json')) {
     ElMessage.error(await readErrorMessage(blob));
     return;
   }
 
-  const headers = (res as { headers?: Record<string, string> }).headers;
-  const disposition = headers?.['content-disposition'] || headers?.['Content-Disposition'];
   const filename = parseFilename(disposition) || fallbackName;
   const objectUrl = URL.createObjectURL(blob);
   try {

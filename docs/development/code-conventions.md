@@ -23,6 +23,7 @@
 ## API 与错误
 
 - 页面 API 使用 `getHttpClient('default')`，认证和文档等特殊场景使用已定义 Client 类型。
+- 原文附件使用 `getHttpClient('download')` 和 `responseType: 'blob'`，直接读取返回的 Blob，不能再次读取 `.data`。该客户端随 default 同步地址、认证、刷新、错误提示和语言配置，但始终开启 `isDirectResponse`；附件名在 `transformResponse` 中读取响应头。空 Blob、非 Blob 和 JSON 错误体均不得触发保存。
 - API 路径保持以 `/` 开头，业务服务前缀与 Gateway 路由约定一致。
 - `api.ts` 负责传输调用，页面组件不直接拼装 Axios 配置。
 - 使用稳定错误类型和用户可理解提示；不要依赖后端异常文本判断权限或状态。
