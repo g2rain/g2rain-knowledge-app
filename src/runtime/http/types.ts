@@ -10,7 +10,7 @@ import type {
   DpopSignInput,
   HttpClientOptions as PackageHttpClientOptions,
   HttpResponse,
-  HttpClientType,
+  HttpClientType as PackageHttpClientType,
   G2rainHttpError,
   G2rainHttpErrorOptions,
   HttpErrorSource,
@@ -22,7 +22,6 @@ export type {
   HttpAuthSession,
   DpopClient,
   DpopSignInput,
-  HttpClientType,
   HttpResponse,
   G2rainHttpError,
   G2rainHttpErrorOptions,
@@ -30,6 +29,7 @@ export type {
 };
 
 export type { DpopClient as Client } from '@g2rain/http';
+export type HttpClientType = PackageHttpClientType | 'download';
 
 /** 与包一致，供 initHttp / options map 使用 */
 export type HttpClientOptions = PackageHttpClientOptions;
@@ -85,6 +85,7 @@ export type ResponseTypeMap = {
   default: false;
   auth: true;
   docs: true;
+  download: true;
 };
 
 export type DefaultResponseType<T = unknown> = Result<T>;

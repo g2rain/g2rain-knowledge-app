@@ -1,9 +1,14 @@
 {
   "pages": [
     {
-      "pageName": "知识内容",
+      "pageName": "本机构知识",
       "pageCode": "knowledge_item",
       "linkPath": "/knowledge_item"
+    },
+    {
+      "pageName": "公共知识",
+      "pageCode": "knowledge_public",
+      "linkPath": "/knowledge_public"
     },
     {
       "pageName": "内容审核",
