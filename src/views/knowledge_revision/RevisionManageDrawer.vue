@@ -299,7 +299,7 @@ const loadTags = async () => {
   }
 };
 
-const loadData = async () => {
+const loadData = async (options?: { runAutoCreate?: boolean }) => {
   if (!props.knowledgeId) return;
   loading.value = true;
   try {
@@ -310,7 +310,8 @@ const loadData = async () => {
     if (props.preferRevisionId) {
       const prefer = revisions.value.find((r) => r.id === props.preferRevisionId);
       if (prefer) await openDetail(prefer);
-    } else if (props.autoCreate) {
+    } else if (options?.runAutoCreate && props.autoCreate) {
+      // 仅抽屉首次打开时自动新建；保存后的刷新不得再次触发
       await openCreate();
     }
   } catch {
@@ -393,7 +394,6 @@ const openCreate = async () => {
         { type: 'warning', confirmButtonText: '打开草稿', cancelButtonText: '取消' },
       );
       await openDetail(draft);
-      openEdit(draft);
     } catch {
       /* 用户取消 */
     }
@@ -503,7 +503,7 @@ watch(
   ([open, kid]) => {
     if (open && kid) {
       void loadTags();
-      void loadData();
+      void loadData({ runAutoCreate: true });
     }
   },
 );
