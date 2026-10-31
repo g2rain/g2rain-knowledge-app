@@ -2,51 +2,51 @@
   <div class="knowledge_release-page">
     <el-card class="knowledge_release-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
-        <el-form-item label="所属机构">
+        <el-form-item :label="$t('G2_FIELD_ORGAN', '所属机构')">
           <OrganSelect v-model="queryForm.organId" />
         </el-form-item>
-        <el-form-item label="视图类型">
+        <el-form-item :label="$t('KN_FIELD_VIEW', '视图类型')">
           <el-select v-model="queryForm.viewType" style="width: 160px" @change="handleSearch">
-            <el-option label="待发布" value="ready" />
-            <el-option label="线上内容" value="online" />
+            <el-option :label="$t('KN_RELEASE_VIEW_READY', '待发布')" value="ready" />
+            <el-option :label="$t('KN_RELEASE_VIEW_ONLINE', '线上内容')" value="online" />
           </el-select>
         </el-form-item>
-        <el-form-item label="知识名称">
-          <el-input v-model="queryForm.knowledgeName" placeholder="知识名称" clearable style="width: 180px" />
+        <el-form-item :label="$t('G2_FIELD_NAME', '名称')">
+          <el-input v-model="queryForm.knowledgeName" :placeholder="$t('G2_PH_NAME', '请输入名称')" clearable style="width: 180px" />
         </el-form-item>
-        <el-form-item label="版本号">
-          <el-input v-model="queryForm.revisionNo" placeholder="版本号" clearable style="width: 140px" />
+        <el-form-item :label="$t('G2_FIELD_VERSION', '版本号')">
+          <el-input v-model="queryForm.revisionNo" :placeholder="$t('G2_FIELD_VERSION', '版本号')" clearable style="width: 140px" />
         </el-form-item>
         <template #actions>
           <el-form-item>
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
+            <el-button type="primary" @click="handleSearch">{{ $t('G2_BTN_QUERY', '查询') }}</el-button>
+            <el-button @click="handleReset">{{ $t('G2_BTN_RESET', '重置') }}</el-button>
           </el-form-item>
         </template>
       </QueryForm>
     </el-card>
 
     <div class="knowledge_release-page__header">
-      <h2>发布管理</h2>
-      <el-tag type="info">默认待发布队列</el-tag>
+      <h2>{{ $t('KN_RELEASE_TITLE', '发布管理') }}</h2>
+      <el-tag type="info">{{ $t('KN_RELEASE_TAG_DEFAULT', '默认待发布队列') }}</el-tag>
     </div>
 
     <el-table v-loading="loading" :data="tableData" border stripe style="width: 100%">
-      <el-table-column label="机构名称" min-width="140" show-overflow-tooltip>
+      <el-table-column :label="$t('G2_FIELD_ORGAN', '所属机构')" min-width="140" show-overflow-tooltip>
         <template #default="{ row }">{{ organName(row) }}</template>
       </el-table-column>
-      <el-table-column prop="knowledgeName" label="知识名称" min-width="160" show-overflow-tooltip />
-      <el-table-column prop="revisionNo" label="版本号" width="120" />
+      <el-table-column prop="knowledgeName" :label="$t('G2_FIELD_NAME', '名称')" min-width="160" show-overflow-tooltip />
+      <el-table-column prop="revisionNo" :label="$t('G2_FIELD_VERSION', '版本号')" width="120" />
       <el-table-column
         v-if="isOnlineView"
         prop="releaseReason"
-        label="最近发布原因"
+        :label="$t('KN_FIELD_RELEASE_REASON', '最近发布原因')"
         min-width="160"
         show-overflow-tooltip
       />
-      <el-table-column v-if="isOnlineView" prop="publishedTime" label="发布时间" width="170" />
-      <el-table-column v-else prop="updateTime" label="更新时间" width="170" />
-      <el-table-column label="操作" width="220" fixed="right">
+      <el-table-column v-if="isOnlineView" prop="publishedTime" :label="$t('G2_FIELD_PUBLISH_TIME', '发布时间')" width="170" />
+      <el-table-column v-else prop="updateTime" :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')" width="170" />
+      <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" width="220" fixed="right">
         <template #default="{ row }">
           <el-button
             v-if="!isOnlineView"
@@ -55,9 +55,9 @@
             v-permission="'knowledge_release:publish'"
             @click="publishRow(row)"
           >
-            发布
+            {{ $t('KN_BTN_PUBLISH', '发布') }}
           </el-button>
-          <el-button v-if="isOnlineView" type="primary" link @click="openHistory(row)">历史版本</el-button>
+          <el-button v-if="isOnlineView" type="primary" link @click="openHistory(row)">{{ $t('KN_BTN_HISTORY', '历史版本') }}</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -75,17 +75,17 @@
       />
     </div>
 
-    <el-drawer v-model="historyVisible" title="可用历史版本" :size="OVERLAY_SIZE.drawer" destroy-on-close>
+    <el-drawer v-model="historyVisible" :title="$t('KN_RELEASE_HISTORY_TITLE', '可用历史版本')" :size="OVERLAY_SIZE.drawer" destroy-on-close>
       <div v-if="historyContext" class="history-summary">
-        {{ historyContext.knowledgeName }} · 当前线上：{{ historyContext.revisionNo }}
+        {{ historyContext.knowledgeName }} · {{ $t('KN_RELEASE_CURRENT_ONLINE', '当前线上') }}：{{ historyContext.revisionNo }}
       </div>
       <el-table :data="historyRows" border stripe>
-        <el-table-column prop="revisionNo" label="版本号" width="120" />
-        <el-table-column prop="revisionStatus" label="状态" width="120">
+        <el-table-column prop="revisionNo" :label="$t('G2_FIELD_VERSION', '版本号')" width="120" />
+        <el-table-column prop="revisionStatus" :label="$t('G2_FIELD_STATUS', '状态')" width="120">
           <template #default="{ row }">{{ getRevisionStatusInfo(row.revisionStatus).label }}</template>
         </el-table-column>
-        <el-table-column prop="updateTime" label="更新时间" width="170" />
-        <el-table-column label="操作" width="120">
+        <el-table-column prop="updateTime" :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')" width="170" />
+        <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" width="120">
           <template #default="{ row }">
             <el-button
               v-if="row.revisionStatus === 'DEPRECATED' || row.revisionStatus === 'PUBLISHED'"
@@ -95,7 +95,7 @@
               :disabled="row.id === historyContext?.activeRevisionId"
               @click="rollbackTo(row)"
             >
-              回滚
+              {{ $t('KN_BTN_ROLLBACK', '回滚') }}
             </el-button>
           </template>
         </el-table-column>
@@ -107,6 +107,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { t } from '@platform/i18n';
 import { QueryForm } from '@g2rain/ui';
 import { OrganSelect } from '@g2rain/ui/platform';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
@@ -157,7 +158,9 @@ const itemNameCache = ref<Record<number, string>>({});
 const isOnlineView = computed(() => queryForm.viewType === 'online');
 
 const emptyText = computed(() =>
-  queryForm.viewType === 'ready' ? '暂无待发布内容，可切换线上内容查看' : '暂无线上内容',
+  queryForm.viewType === 'ready'
+    ? t('KN_RELEASE_EMPTY_READY', '暂无待发布内容，可切换线上内容查看')
+    : t('KN_RELEASE_EMPTY_ONLINE', '暂无线上内容'),
 );
 
 const resolveItemName = async (knowledgeId: number) => {
@@ -335,12 +338,16 @@ const publishRow = async (row: ReleaseRow) => {
   let reason: string | undefined;
   try {
     ({ value: reason } = await ElMessageBox.prompt(
-      `确认发布「${row.knowledgeName}」版本 ${row.revisionNo}？可填写变更原因。`,
-      '发布确认',
+      t(
+        'KN_RELEASE_PROMPT_PUBLISH',
+        { name: row.knowledgeName, no: row.revisionNo },
+        '确认发布「{name}」版本 {no}？可填写变更原因。',
+      ),
+      t('KN_RELEASE_TITLE_PUBLISH', '发布确认'),
       {
-        inputPlaceholder: '变更原因（可选）',
-        confirmButtonText: '发布',
-        cancelButtonText: '取消',
+        inputPlaceholder: t('KN_PH_CHANGE_REASON_OPT', '变更原因（可选）'),
+        confirmButtonText: t('KN_BTN_PUBLISH', '发布'),
+        cancelButtonText: t('G2_BTN_CANCEL', '取消'),
         inputValue: '',
       },
     ));
@@ -352,7 +359,7 @@ const publishRow = async (row: ReleaseRow) => {
   const revision = await KnowledgeRevisionApi.getById(row.revisionId);
   const release = await ensureRelease(row);
   if (!release) {
-    ElMessage.error('发布选择记录初始化失败，请重试');
+    ElMessage.error(t('KN_RELEASE_ERR_INIT', '发布选择记录初始化失败，请重试'));
     return;
   }
   await KnowledgeReleaseApi.publish({
@@ -360,7 +367,7 @@ const publishRow = async (row: ReleaseRow) => {
     revisionId: revision.id,
     reason: reason?.trim() || undefined,
   });
-  ElMessage.success('发布成功。可通过「效果验证」检查结果');
+  ElMessage.success(t('KN_RELEASE_OK_PUBLISH', '发布成功。可通过「效果验证」检查结果'));
   await loadData();
 };
 
@@ -377,23 +384,35 @@ const rollbackTo = async (target: KnowledgeRevision) => {
   if (!historyContext.value?.releaseId) return;
   try {
     await ElMessageBox.confirm(
-      `确认将「${historyContext.value.knowledgeName}」从 ${historyContext.value.revisionNo} 回滚到 ${target.revisionNo}？`,
-      '回滚确认',
+      t(
+        'KN_RELEASE_CONFIRM_ROLLBACK',
+        {
+          name: historyContext.value.knowledgeName,
+          from: historyContext.value.revisionNo,
+          to: target.revisionNo,
+        },
+        '确认将「{name}」从 {from} 回滚到 {to}？',
+      ),
+      t('KN_RELEASE_TITLE_ROLLBACK', '回滚确认'),
       { type: 'warning' },
     );
     const release = await KnowledgeReleaseApi.getById(historyContext.value.releaseId);
     const revision = await KnowledgeRevisionApi.getById(target.id);
-    const { value: reason } = await ElMessageBox.prompt('请填写回滚原因', '回滚原因', {
-      inputPlaceholder: '变更原因',
-      confirmButtonText: '回滚',
-      cancelButtonText: '取消',
-    });
+    const { value: reason } = await ElMessageBox.prompt(
+      t('KN_RELEASE_PROMPT_ROLLBACK', '请填写回滚原因'),
+      t('KN_RELEASE_REASON_TITLE', '回滚原因'),
+      {
+        inputPlaceholder: t('KN_PH_CHANGE_REASON', '变更原因'),
+        confirmButtonText: t('KN_BTN_ROLLBACK', '回滚'),
+        cancelButtonText: t('G2_BTN_CANCEL', '取消'),
+      },
+    );
     await KnowledgeReleaseApi.rollback({
       releaseId: release.id,
       revisionId: revision.id,
       reason: reason?.trim() || undefined,
     });
-    ElMessage.success('回滚成功。可通过「效果验证」检查结果');
+    ElMessage.success(t('KN_RELEASE_OK_ROLLBACK', '回滚成功。可通过「效果验证」检查结果'));
     historyVisible.value = false;
     await loadData();
   } catch {

@@ -2,19 +2,23 @@
   <div class="knowledge_category-page">
     <el-card class="knowledge_category-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
-        <el-form-item label="所属机构">
+        <el-form-item :label="$t('G2_FIELD_ORGAN', '所属机构')">
           <OrganSelect v-model="queryForm.organId" />
         </el-form-item>
-        <el-form-item label="分类编码">
-          <el-input v-model="queryForm.categoryCode" placeholder="分类编码" clearable style="width: 200px" />
+        <el-form-item :label="$t('G2_FIELD_CODE', '编码')">
+          <el-input v-model="queryForm.categoryCode" :placeholder="$t('G2_PH_CODE', '请输入编码')" clearable style="width: 200px" />
         </el-form-item>
-        <el-form-item label="分类名称">
-          <el-input v-model="queryForm.categoryName" placeholder="分类名称" clearable style="width: 200px" />
+        <el-form-item :label="$t('G2_FIELD_NAME', '名称')">
+          <el-input v-model="queryForm.categoryName" :placeholder="$t('G2_PH_NAME', '请输入名称')" clearable style="width: 200px" />
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="queryForm.status" placeholder="状态" clearable style="width: 160px">
-            <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
+        <el-form-item :label="$t('G2_FIELD_STATUS', '状态')">
+          <DictSelect
+            v-model="queryForm.status"
+            usage-code="ENABLE_STATUS"
+            :placeholder="$t('G2_PH_STATUS', '请选择状态')"
+            clearable
+            width="160px"
+          />
         </el-form-item>
         <template #actions>
           <el-form-item>
@@ -27,22 +31,24 @@
 
     <div class="knowledge_category-page__header">
       <div class="knowledge_category-page__title-group">
-        <h2>分类管理</h2>
+        <h2>{{ $t('G2_FIELD_CATEGORY', '分类') }}</h2>
       </div>
-      <el-button type="primary" v-permission="'knowledge_category:add'" @click="handleCreate">新增分类</el-button>
+      <el-button type="primary" v-permission="'knowledge_category:add'" @click="handleCreate">{{ $t('G2_BTN_ADD_CATEGORY', '新增分类') }}</el-button>
     </div>
 
     <SortableTable :data="tableData" border stripe style="width: 100%" :enable-multi-sort="true" @sort-change="handleSortChange">
-      <el-table-column label="机构名称" min-width="140" show-overflow-tooltip>
+      <el-table-column :label="$t('G2_FIELD_ORGAN', '所属机构')" min-width="140" show-overflow-tooltip>
         <template #default="{ row }">{{ organName(row) }}</template>
       </el-table-column>
-      <el-table-column prop="categoryCode" label="编码" min-width="140" />
-      <el-table-column prop="categoryName" label="名称" min-width="160" />
-      <el-table-column prop="status" label="状态" width="100">
-        <template #default="{ row }">{{ statusLabel(row.status) }}</template>
+      <el-table-column prop="categoryCode" :label="$t('G2_FIELD_CODE', '编码')" min-width="140" />
+      <el-table-column prop="categoryName" :label="$t('G2_FIELD_NAME', '名称')" min-width="160" />
+      <el-table-column prop="status" :label="$t('G2_FIELD_STATUS', '状态')" width="100">
+        <template #default="{ row }">
+          <DictText :value="row.status" usage-code="ENABLE_STATUS" />
+        </template>
       </el-table-column>
-      <el-table-column prop="sortOrder" label="排序" width="100" />
-      <el-table-column prop="remark" label="说明" min-width="160" show-overflow-tooltip />
+      <el-table-column prop="sortOrder" :label="$t('G2_LBL_SORT', '排序')" width="100" />
+      <el-table-column prop="remark" :label="$t('G2_FIELD_DESCRIPTION', '说明')" min-width="160" show-overflow-tooltip />
       <TableColumn prop="updateTime" :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')" width="180" sortable="custom" />
       <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" fixed="right" width="220">
         <template #default="{ row }">
@@ -75,24 +81,22 @@
       />
     </div>
 
-    <el-dialog v-model="editDialogVisible" :title="isEdit ? '编辑分类' : '新增分类'" width="520px" destroy-on-close>
+    <el-dialog v-model="editDialogVisible" :title="isEdit ? $t('G2_BTN_EDIT_CATEGORY', '编辑分类') : $t('G2_BTN_ADD_CATEGORY', '新增分类')" width="520px" destroy-on-close>
       <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="88px">
-        <el-form-item label="编码" prop="categoryCode">
-          <el-input v-model="editForm.categoryCode" placeholder="分类编码" :disabled="isEdit" />
+        <el-form-item :label="$t('G2_FIELD_CODE', '编码')" prop="categoryCode">
+          <el-input v-model="editForm.categoryCode" :placeholder="$t('G2_PH_CODE', '请输入编码')" :disabled="isEdit" />
         </el-form-item>
-        <el-form-item label="名称" prop="categoryName">
-          <el-input v-model="editForm.categoryName" placeholder="分类名称" />
+        <el-form-item :label="$t('G2_FIELD_NAME', '名称')" prop="categoryName">
+          <el-input v-model="editForm.categoryName" :placeholder="$t('G2_PH_NAME', '请输入名称')" />
         </el-form-item>
-        <el-form-item label="排序" prop="sortOrder">
+        <el-form-item :label="$t('G2_LBL_SORT', '排序')" prop="sortOrder">
           <el-input-number v-model="editForm.sortOrder" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="editForm.status" placeholder="状态" style="width: 100%">
-            <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
+        <el-form-item :label="$t('G2_FIELD_STATUS', '状态')" prop="status">
+          <DictSelect v-model="editForm.status" usage-code="ENABLE_STATUS" :placeholder="$t('G2_PH_STATUS', '请选择状态')" width="100%" />
         </el-form-item>
-        <el-form-item label="说明" prop="remark">
-          <el-input v-model="editForm.remark" type="textarea" :rows="3" placeholder="说明" />
+        <el-form-item :label="$t('G2_FIELD_DESCRIPTION', '说明')" prop="remark">
+          <el-input v-model="editForm.remark" type="textarea" :rows="3" :placeholder="$t('G2_FIELD_DESCRIPTION', '说明')" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -101,14 +105,16 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="detailDialogVisible" title="分类明细" width="520px">
+    <el-dialog v-model="detailDialogVisible" :title="$t('G2_DETAIL_CATEGORY', '分类明细')" width="520px">
       <el-descriptions :column="1" border>
-        <el-descriptions-item label="机构名称">{{ organName(currentRow) }}</el-descriptions-item>
-        <el-descriptions-item label="编码">{{ currentRow?.categoryCode }}</el-descriptions-item>
-        <el-descriptions-item label="名称">{{ currentRow?.categoryName }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ statusLabel(currentRow?.status) }}</el-descriptions-item>
-        <el-descriptions-item label="排序">{{ currentRow?.sortOrder }}</el-descriptions-item>
-        <el-descriptions-item label="说明">{{ currentRow?.remark }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_ORGAN', '所属机构')">{{ organName(currentRow) }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_CODE', '编码')">{{ currentRow?.categoryCode }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_NAME', '名称')">{{ currentRow?.categoryName }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_STATUS', '状态')">
+          <DictText :value="currentRow?.status" usage-code="ENABLE_STATUS" />
+        </el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_LBL_SORT', '排序')">{{ currentRow?.sortOrder }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_DESCRIPTION', '说明')">{{ currentRow?.remark }}</el-descriptions-item>
         <el-descriptions-item :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')">{{ currentRow?.updateTime }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
@@ -127,13 +133,9 @@ import { KnowledgeCategoryApi } from './api';
 import type { KnowledgeCategory, KnowledgeCategoryPayload, KnowledgeCategoryQuery } from './type';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
-import { OrganSelect } from '@g2rain/ui/platform';
+import { OrganSelect, DictSelect, DictText } from '@g2rain/ui/platform';
 import { compactQuery } from '@shared/knowledge/entity';
 import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
-import { ITEM_STATUS_OPTIONS } from '@/views/knowledge_revision/status';
-
-const statusOptions = ITEM_STATUS_OPTIONS;
-const statusLabel = (status?: string) => statusOptions.find((o) => o.value === status)?.label || status || '-';
 
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
@@ -194,7 +196,7 @@ const handleView = (row: KnowledgeCategory) => {
 };
 
 const handleDelete = (row: KnowledgeCategory) => {
-  ElMessageBox.confirm(`确认删除分类「${row.categoryName}」吗？`, t('G2_LBL_TIP', '提示'), { type: 'warning' })
+  ElMessageBox.confirm(t('KN_CATEGORY_DEL_CONFIRM', { name: row.categoryName }, '确认删除分类「{name}」吗？'), t('G2_LBL_TIP', '提示'), { type: 'warning' })
     .then(async () => {
       await KnowledgeCategoryApi.remove(row.id);
       if (tableData.value.length === 1 && pagination.pageNum > 1) pagination.pageNum--;
@@ -216,9 +218,9 @@ const editForm = reactive({
   remark: '',
 });
 const editRules: FormRules = {
-  categoryCode: [{ required: true, message: '请输入分类编码', trigger: 'blur' }],
-  categoryName: [{ required: true, message: '请输入分类名称', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }],
+  categoryCode: [{ required: true, message: t('G2_PH_CODE', '请输入编码'), trigger: 'blur' }],
+  categoryName: [{ required: true, message: t('G2_PH_NAME', '请输入名称'), trigger: 'blur' }],
+  status: [{ required: true, message: t('G2_PH_STATUS', '请选择状态'), trigger: 'change' }],
   sortOrder: [{ required: true, message: '请输入排序', trigger: 'blur' }],
 };
 

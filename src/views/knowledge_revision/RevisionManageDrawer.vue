@@ -18,32 +18,32 @@
           <span>{{ item.knowledgeName }}</span>
           <el-tag size="small" style="margin-left: 8px">{{ typeLabel(item.knowledgeType) }}</el-tag>
           <el-tag size="small" :type="item.status === 'ACTIVE' ? 'success' : 'info'" style="margin-left: 8px">
-            {{ item.status === 'ACTIVE' ? '启用' : '停用' }}
+            <DictText :value="item.status" usage-code="ENABLE_STATUS" />
           </el-tag>
         </template>
-        <div>知识键：{{ item.knowledgeKey }} · 当前线上版本：{{ activeRevisionLabel }}</div>
+        <div>{{ $t('KN_FIELD_KNOWLEDGE_KEY', '知识键') }}：{{ item.knowledgeKey }} · {{ $t('KN_ITEM_FIELD_ACTIVE_REV', '当前生效版本') }}：{{ activeRevisionLabel }}</div>
       </el-alert>
 
       <template v-if="viewMode === 'list'">
         <div class="revision-drawer__toolbar">
-          <span>版本列表</span>
-          <el-button type="primary" v-permission="'knowledge_revision:add'" @click="openCreate">新增版本</el-button>
+          <span>{{ $t('KN_REVISION_LIST', '版本列表') }}</span>
+          <el-button type="primary" v-permission="'knowledge_revision:add'" @click="openCreate">{{ $t('KN_ITEM_BTN_ADD_VERSION', '新增版本') }}</el-button>
         </div>
         <el-table :data="revisions" border stripe highlight-current-row @row-click="openDetail">
-          <el-table-column prop="revisionNo" label="版本号" width="120" />
-          <el-table-column prop="sourceType" label="类型" width="90">
+          <el-table-column prop="revisionNo" :label="$t('G2_FIELD_VERSION', '版本号')" width="120" />
+          <el-table-column prop="sourceType" :label="$t('G2_FIELD_TYPE', '类型')" width="90">
             <template #default="{ row }">{{ typeLabel(row.sourceType) }}</template>
           </el-table-column>
-          <el-table-column prop="revisionStatus" label="状态" min-width="140">
+          <el-table-column prop="revisionStatus" :label="$t('G2_FIELD_STATUS', '状态')" min-width="140">
             <template #default="{ row }">
               <div>{{ getRevisionStatusInfo(row.revisionStatus).label }}</div>
               <div class="muted">{{ getRevisionStatusInfo(row.revisionStatus).menuHint }}</div>
             </template>
           </el-table-column>
-          <el-table-column prop="updateTime" label="更新时间" width="170" />
-          <el-table-column label="操作" width="220" fixed="right">
+          <el-table-column prop="updateTime" :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')" width="170" />
+          <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" width="220" fixed="right">
             <template #default="{ row }">
-              <el-button type="primary" link size="small" @click.stop="openDetail(row)">查看</el-button>
+              <el-button type="primary" link size="small" @click.stop="openDetail(row)">{{ $t('G2_BTN_DETAIL', '查看') }}</el-button>
               <el-button
                 v-if="row.revisionStatus === 'DRAFT'"
                 type="primary"
@@ -52,7 +52,7 @@
                 v-permission="'knowledge_revision:edit'"
                 @click.stop="openEdit(row)"
               >
-                编辑
+                {{ $t('G2_BTN_EDIT', '编辑') }}
               </el-button>
               <el-button
                 v-if="row.revisionStatus === 'DRAFT'"
@@ -62,7 +62,7 @@
                 v-permission="'knowledge_revision:submit-review'"
                 @click.stop="submitReview(row)"
               >
-                提交审核
+                {{ $t('KN_BTN_SUBMIT_REVIEW', '提交审核') }}
               </el-button>
             </template>
           </el-table-column>
@@ -71,14 +71,14 @@
 
       <template v-else-if="current">
         <div class="revision-drawer__toolbar">
-          <el-button link type="primary" @click="backToList">← 返回列表</el-button>
+          <el-button link type="primary" @click="backToList">{{ $t('KN_BTN_BACK_LIST', '← 返回列表') }}</el-button>
           <div class="revision-drawer__actions">
             <el-button
               v-if="current.revisionStatus === 'DRAFT'"
               v-permission="'knowledge_revision:edit'"
               @click="openEdit(current)"
             >
-              编辑
+              {{ $t('G2_BTN_EDIT', '编辑') }}
             </el-button>
             <el-button
               v-if="current.revisionStatus === 'DRAFT'"
@@ -86,7 +86,7 @@
               v-permission="'knowledge_revision:submit-review'"
               @click="submitReview(current)"
             >
-              提交审核
+              {{ $t('KN_BTN_SUBMIT_REVIEW', '提交审核') }}
             </el-button>
           </div>
         </div>
@@ -98,22 +98,22 @@
           style="margin-bottom: 12px"
         />
         <el-tabs v-model="detailTab">
-          <el-tab-pane label="内容" name="content">
+          <el-tab-pane :label="$t('KN_TAB_CONTENT', '内容')" name="content">
             <el-descriptions :column="1" border>
-              <el-descriptions-item label="版本号">{{ current.revisionNo }}</el-descriptions-item>
-              <el-descriptions-item label="类型">{{ typeLabel(current.sourceType) }}</el-descriptions-item>
-              <el-descriptions-item label="状态">{{ getRevisionStatusInfo(current.revisionStatus).label }}</el-descriptions-item>
-              <el-descriptions-item label="主题优先级">{{ item?.priority ?? 0 }}</el-descriptions-item>
-              <el-descriptions-item label="主题标签">{{ formatTags(item?.tagsJson) }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('G2_FIELD_VERSION', '版本号')">{{ current.revisionNo }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('G2_FIELD_TYPE', '类型')">{{ typeLabel(current.sourceType) }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('G2_FIELD_STATUS', '状态')">{{ getRevisionStatusInfo(current.revisionStatus).label }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('KN_FIELD_PRIORITY', '优先级')">{{ item?.priority ?? 0 }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('G2_FIELD_TAG', '标签')">{{ formatTags(item?.tagsJson) }}</el-descriptions-item>
               <template v-if="current.sourceType === 'FAQ'">
-                <el-descriptions-item label="标准问题">{{ current.faqQuestion }}</el-descriptions-item>
-                <el-descriptions-item label="标准答案">
+                <el-descriptions-item :label="$t('KN_FIELD_FAQ_Q', '标准问题')">{{ current.faqQuestion }}</el-descriptions-item>
+                <el-descriptions-item :label="$t('KN_FIELD_FAQ_A', '标准答案')">
                   <pre class="block-text">{{ current.faqAnswer }}</pre>
                 </el-descriptions-item>
               </template>
               <template v-else>
-                <el-descriptions-item label="源文件">{{ current.sourceFileName || '未上传' }}</el-descriptions-item>
-                <el-descriptions-item label="下载">
+                <el-descriptions-item :label="$t('KN_FIELD_SOURCE_FILE', '源文件')">{{ current.sourceFileName || $t('KN_MSG_NO_FILE', '未上传') }}</el-descriptions-item>
+                <el-descriptions-item :label="$t('KN_BTN_DOWNLOAD', '下载')">
                   <el-button
                     v-if="current.sourceFileName"
                     type="primary"
@@ -121,39 +121,39 @@
                     v-permission="'knowledge_revision:download-source'"
                     @click="downloadCurrent"
                   >
-                    下载原文
+                    {{ $t('KN_BTN_DOWNLOAD_SOURCE', '下载原文') }}
                   </el-button>
-                  <span v-else class="muted">暂无文件</span>
+                  <span v-else class="muted">{{ $t('KN_MSG_NO_FILE', '未上传') }}</span>
                 </el-descriptions-item>
               </template>
             </el-descriptions>
           </el-tab-pane>
-          <el-tab-pane label="审核" name="review">
+          <el-tab-pane :label="$t('KN_TAB_REVIEW', '审核')" name="review">
             <el-descriptions :column="1" border>
-              <el-descriptions-item label="审核意见">{{ current.reviewComment || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="审核时间">{{ current.reviewTime || '-' }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('KN_FIELD_REVIEW_COMMENT', '审核意见')">{{ current.reviewComment || '-' }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('KN_FIELD_REVIEW_TIME', '审核时间')">{{ current.reviewTime || '-' }}</el-descriptions-item>
             </el-descriptions>
           </el-tab-pane>
-          <el-tab-pane label="处理结果" name="process">
+          <el-tab-pane :label="$t('KN_TAB_PROCESS', '处理结果')" name="process">
             <el-descriptions :column="1" border>
-              <el-descriptions-item label="切片数">{{ current.chunkCount ?? '-' }}</el-descriptions-item>
-              <el-descriptions-item label="索引状态">{{ current.indexStatus || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="下一步">{{ formatNextStepHint(current.revisionStatus) }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('KN_FIELD_CHUNK_COUNT', '切片数')">{{ current.chunkCount ?? '-' }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('KN_FIELD_INDEX_STATUS', '索引状态')">{{ current.indexStatus || '-' }}</el-descriptions-item>
+              <el-descriptions-item :label="$t('G2_BTN_NEXT', '下一步')">{{ formatNextStepHint(current.revisionStatus) }}</el-descriptions-item>
             </el-descriptions>
           </el-tab-pane>
-          <el-tab-pane label="切片" name="chunks">
+          <el-tab-pane :label="$t('KN_TAB_CHUNKS', '切片')" name="chunks">
             <el-table :data="chunks" border stripe max-height="420">
-              <el-table-column prop="chunkNo" label="序号" width="80" />
-              <el-table-column prop="titlePath" label="标题路径" min-width="180" show-overflow-tooltip />
-              <el-table-column label="页码" width="100">
+              <el-table-column prop="chunkNo" :label="$t('KN_FIELD_SEQ', '序号')" width="80" />
+              <el-table-column prop="titlePath" :label="$t('KN_FIELD_TITLE_PATH', '标题路径')" min-width="180" show-overflow-tooltip />
+              <el-table-column :label="$t('KN_FIELD_PAGE', '页码')" width="100">
                 <template #default="{ row }">
                   {{ row.pageStart }}{{ row.pageEnd && row.pageEnd !== row.pageStart ? `-${row.pageEnd}` : '' }}
                 </template>
               </el-table-column>
               <el-table-column prop="tokenCount" label="Token" width="90" />
-              <el-table-column prop="chunkStatus" label="状态" width="120" />
+              <el-table-column prop="chunkStatus" :label="$t('G2_FIELD_STATUS', '状态')" width="120" />
             </el-table>
-            <el-empty v-if="!chunks.length" description="暂无切片" :image-size="72" />
+            <el-empty v-if="!chunks.length" :description="$t('KN_MSG_NO_CHUNKS', '暂无切片')" :image-size="72" />
           </el-tab-pane>
         </el-tabs>
       </template>
@@ -161,33 +161,33 @@
 
     <el-dialog
       v-model="editVisible"
-      :title="editIsCreate ? '新增版本' : '编辑版本'"
+      :title="editIsCreate ? $t('KN_ITEM_BTN_ADD_VERSION', '新增版本') : $t('KN_REVISION_DLG_EDIT', '编辑版本')"
       :width="OVERLAY_SIZE.editDialog"
       append-to-body
       destroy-on-close
       :close-on-click-modal="false"
     >
       <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="100px">
-        <el-form-item label="版本号" prop="revisionNo">
-          <el-input v-model="editForm.revisionNo" placeholder="如 v1 或 2026.10.17" />
+        <el-form-item :label="$t('G2_FIELD_VERSION', '版本号')" prop="revisionNo">
+          <el-input v-model="editForm.revisionNo" :placeholder="$t('KN_PH_REVISION_NO', '如 v1 或 2026.10.17')" />
         </el-form-item>
-        <el-form-item v-if="editIsCreate" label="来源类型" prop="sourceType">
+        <el-form-item v-if="editIsCreate" :label="$t('KN_FIELD_SOURCE_TYPE', '来源类型')" prop="sourceType">
           <el-radio-group v-model="editForm.sourceType" disabled>
-            <el-radio value="FILE">文档</el-radio>
+            <el-radio value="FILE">{{ $t('KN_TYPE_DOCUMENT', '文档') }}</el-radio>
             <el-radio value="FAQ">FAQ</el-radio>
           </el-radio-group>
-          <div class="field-tip">由来源主题类型决定：文档主题 → 文件，FAQ 主题 → FAQ</div>
+          <div class="field-tip">{{ $t('KN_REVISION_TIP_SOURCE', '由来源主题类型决定：文档主题 → 文件，FAQ 主题 → FAQ') }}</div>
         </el-form-item>
         <template v-if="editForm.sourceType === 'FAQ'">
-          <el-form-item label="标准问题" prop="faqQuestion">
-            <el-input v-model="editForm.faqQuestion" placeholder="标准问题" />
+          <el-form-item :label="$t('KN_FIELD_FAQ_Q', '标准问题')" prop="faqQuestion">
+            <el-input v-model="editForm.faqQuestion" :placeholder="$t('KN_FIELD_FAQ_Q', '标准问题')" />
           </el-form-item>
-          <el-form-item label="标准答案" prop="faqAnswer">
-            <el-input v-model="editForm.faqAnswer" type="textarea" :rows="6" placeholder="标准答案" />
+          <el-form-item :label="$t('KN_FIELD_FAQ_A', '标准答案')" prop="faqAnswer">
+            <el-input v-model="editForm.faqAnswer" type="textarea" :rows="6" :placeholder="$t('KN_FIELD_FAQ_A', '标准答案')" />
           </el-form-item>
         </template>
         <template v-else>
-          <el-form-item label="源文件" :prop="editIsCreate ? 'file' : undefined">
+          <el-form-item :label="$t('KN_FIELD_SOURCE_FILE', '源文件')" :prop="editIsCreate ? 'file' : undefined">
             <el-upload
               :auto-upload="false"
               :limit="1"
@@ -195,18 +195,18 @@
               :on-remove="() => (editForm.file = null)"
               accept=".pdf,.md,.markdown,.html,.htm"
             >
-              <el-button>选择文件</el-button>
+              <el-button>{{ $t('G2_BTN_SELECT_FILE', '选择文件') }}</el-button>
               <template #tip>
-                <div class="el-upload__tip">支持 PDF / Markdown / HTML；保存后上传</div>
+                <div class="el-upload__tip">{{ $t('KN_REVISION_TIP_UPLOAD', '支持 PDF / Markdown / HTML；保存后上传') }}</div>
               </template>
             </el-upload>
           </el-form-item>
         </template>
-        <div class="field-tip" style="margin-bottom: 8px">标签与优先级请在知识主题编辑中维护</div>
+        <div class="field-tip" style="margin-bottom: 8px">{{ $t('KN_REVISION_TIP_TAGS', '标签与优先级请在知识主题编辑中维护') }}</div>
       </el-form>
       <template #footer>
-        <el-button @click="editVisible = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="saveRevision">保存</el-button>
+        <el-button @click="editVisible = false">{{ $t('G2_BTN_CANCEL', '取消') }}</el-button>
+        <el-button type="primary" :loading="saving" @click="saveRevision">{{ $t('G2_BTN_SAVE', '保存') }}</el-button>
       </template>
     </el-dialog>
   </el-drawer>
@@ -216,6 +216,8 @@
 import { computed, reactive, ref, watch } from 'vue';
 import type { FormInstance, FormRules, UploadFile } from 'element-plus';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { t } from '@platform/i18n';
+import { DictText } from '@g2rain/ui/platform';
 import { KnowledgeItemApi } from '@/views/knowledge_item/api';
 import type { KnowledgeItem } from '@/views/knowledge_item/type';
 import { KnowledgeRevisionApi } from './api';
@@ -389,9 +391,13 @@ const openCreate = async () => {
   if (draft) {
     try {
       await ElMessageBox.confirm(
-        `该主题已有草稿版本「${draft.revisionNo}」，是否打开已有草稿？`,
-        '提示',
-        { type: 'warning', confirmButtonText: '打开草稿', cancelButtonText: '取消' },
+        t('KN_REVISION_CONFIRM_OPEN_DRAFT', { no: draft.revisionNo }, '该主题已有草稿版本「{no}」，是否打开已有草稿？'),
+        t('G2_LBL_TIP', '提示'),
+        {
+          type: 'warning',
+          confirmButtonText: t('KN_BTN_OPEN_DRAFT', '打开草稿'),
+          cancelButtonText: t('G2_BTN_CANCEL', '取消'),
+        },
       );
       await openDetail(draft);
     } catch {
@@ -431,7 +437,7 @@ const saveRevision = async () => {
   const valid = await editFormRef.value.validate().catch(() => false);
   if (!valid) return;
   if (editForm.sourceType === 'FILE' && editIsCreate.value && !editForm.file) {
-    ElMessage.warning('请选择源文件');
+    ElMessage.warning(t('KN_REVISION_WARN_PICK_FILE', '请选择源文件'));
     return;
   }
   saving.value = true;
@@ -455,7 +461,7 @@ const saveRevision = async () => {
       const latest = await KnowledgeRevisionApi.getById(revisionId);
       await KnowledgeRevisionApi.replaceFile(revisionId, latest.version, editForm.file);
     }
-    ElMessage.success('版本已保存');
+    ElMessage.success(t('KN_REVISION_OK_SAVE', '版本已保存'));
     editVisible.value = false;
     emit('changed');
     await loadData();
@@ -470,15 +476,19 @@ const submitReview = async (row: KnowledgeRevision) => {
   try {
     const latest = await KnowledgeRevisionApi.getById(row.id);
     if (latest.sourceType === 'FILE' && !latest.sourceFileName) {
-      ElMessage.warning('请先上传源文件再提交审核');
+      ElMessage.warning(t('KN_REVISION_WARN_NEED_FILE', '请先上传源文件再提交审核'));
       return;
     }
-    await ElMessageBox.confirm(`确认提交版本「${latest.revisionNo}」审核？`, '提交审核', { type: 'warning' });
+    await ElMessageBox.confirm(
+      t('KN_REVISION_CONFIRM_SUBMIT', { no: latest.revisionNo }, '确认提交版本「{no}」审核？'),
+      t('KN_BTN_SUBMIT_REVIEW', '提交审核'),
+      { type: 'warning' },
+    );
     await KnowledgeRevisionApi.submitReview({
       revisionId: latest.id,
       expectedVersion: latest.version,
     });
-    ElMessage.success('已提交审核。下一站：内容审核');
+    ElMessage.success(t('KN_REVISION_OK_SUBMIT', '已提交审核。下一站：内容审核'));
     emit('changed');
     await loadData();
     if (viewMode.value === 'detail') {

@@ -1,30 +1,30 @@
 <template>
   <div class="knowledge_search-page">
     <div class="knowledge_search-page__header">
-      <h2>效果验证</h2>
-      <el-tag type="info">默认问答验证</el-tag>
+      <h2>{{ $t('KN_SEARCH_TITLE', '效果验证') }}</h2>
+      <el-tag type="info">{{ $t('KN_SEARCH_TAG_DEFAULT', '默认问答验证') }}</el-tag>
     </div>
 
     <el-card shadow="never" class="knowledge_search-page__panel">
       <el-form label-width="96px" @submit.prevent>
-        <el-form-item label="验证方式">
+        <el-form-item :label="$t('KN_FIELD_VERIFY_MODE', '验证方式')">
           <el-select v-model="verifyMode" style="width: 200px" @change="onModeChange">
-            <el-option label="问答验证" value="answer" />
-            <el-option label="检索验证" value="retrieve" />
+            <el-option :label="$t('KN_SEARCH_MODE_ANSWER', '问答验证')" value="answer" />
+            <el-option :label="$t('KN_SEARCH_MODE_RETRIEVE', '检索验证')" value="retrieve" />
           </el-select>
         </el-form-item>
-        <el-form-item label="问题">
+        <el-form-item :label="$t('G2_FIELD_QUESTION', '问题')">
           <el-input
             v-model="form.query"
             type="textarea"
             :rows="3"
             maxlength="2000"
             show-word-limit
-            placeholder="输入要验证的问题"
+            :placeholder="$t('KN_PH_QUESTION', '输入要验证的问题')"
           />
         </el-form-item>
-        <el-form-item v-if="isAnswerMode" label="回复模板">
-          <el-select v-model="form.templateCode" filterable placeholder="选择启用模板" style="width: 320px">
+        <el-form-item v-if="isAnswerMode" :label="$t('KN_TEMPLATE_TITLE', '回答模板')">
+          <el-select v-model="form.templateCode" filterable :placeholder="$t('KN_PH_TEMPLATE', '选择启用模板')" style="width: 320px">
             <el-option
               v-for="tpl in templates"
               :key="tpl.templateCode"
@@ -32,12 +32,12 @@
               :value="tpl.templateCode"
             />
           </el-select>
-          <div class="field-tip">模板编码不是模型名称</div>
+          <div class="field-tip">{{ $t('KN_SEARCH_TIP_TEMPLATE', '模板编码不是模型名称') }}</div>
         </el-form-item>
 
         <el-collapse v-model="advancedOpen">
-          <el-collapse-item title="高级选项" name="advanced">
-            <el-form-item label="全部命中标签">
+          <el-collapse-item :title="$t('KN_SEARCH_ADVANCED', '高级选项')" name="advanced">
+            <el-form-item :label="$t('KN_FIELD_ALL_TAGS', '全部命中标签')">
               <el-select v-model="form.allTagCodes" multiple filterable clearable style="width: 100%">
                 <el-option
                   v-for="tag in tags"
@@ -47,7 +47,7 @@
                 />
               </el-select>
             </el-form-item>
-            <el-form-item label="任一命中标签">
+            <el-form-item :label="$t('KN_FIELD_ANY_TAGS', '任一命中标签')">
               <el-select v-model="form.anyTagCodes" multiple filterable clearable style="width: 100%">
                 <el-option
                   v-for="tag in tags"
@@ -60,9 +60,9 @@
             <el-form-item label="topK">
               <el-input-number v-model="form.topK" :min="1" :max="50" controls-position="right" />
             </el-form-item>
-            <el-form-item label="包含公共知识">
+            <el-form-item :label="$t('KN_FIELD_INCLUDE_PUBLIC', '包含公共知识')">
               <el-switch v-model="form.includePublic" />
-              <div class="field-tip">默认关闭；开启后额外召回跨机构 PUBLIC 活动版本</div>
+              <div class="field-tip">{{ $t('KN_SEARCH_TIP_PUBLIC', '默认关闭；开启后额外召回跨机构 PUBLIC 活动版本') }}</div>
             </el-form-item>
           </el-collapse-item>
         </el-collapse>
@@ -75,7 +75,7 @@
             v-permission="'knowledge_search:answer'"
             @click="runVerify"
           >
-            开始验证
+            {{ $t('KN_BTN_VERIFY', '开始验证') }}
           </el-button>
           <el-button
             v-else
@@ -84,7 +84,7 @@
             v-permission="'knowledge_search:retrieve'"
             @click="runVerify"
           >
-            开始验证
+            {{ $t('KN_BTN_VERIFY', '开始验证') }}
           </el-button>
         </el-form-item>
       </el-form>
@@ -92,7 +92,7 @@
 
     <el-card v-if="result" shadow="never" class="knowledge_search-page__result">
       <template v-if="isAnswerMode">
-        <h3>回答</h3>
+        <h3>{{ $t('KN_SEARCH_ANSWER', '回答') }}</h3>
         <el-alert
           v-if="!result.answerable"
           type="warning"
@@ -103,7 +103,7 @@
         <pre v-else class="answer-text">{{ answerResult?.answer || '-' }}</pre>
       </template>
       <template v-else>
-        <h3>命中证据</h3>
+        <h3>{{ $t('KN_SEARCH_EVIDENCE', '命中证据') }}</h3>
         <el-alert
           v-if="!result.answerable"
           type="warning"
@@ -114,7 +114,7 @@
       </template>
 
       <div v-if="(result.sources || []).length" class="sources">
-        <h4>{{ isAnswerMode ? '引用依据' : '检索结果' }}</h4>
+        <h4>{{ isAnswerMode ? $t('KN_SEARCH_CITATIONS', '引用依据') : $t('KN_SEARCH_HITS', '检索结果') }}</h4>
         <el-collapse>
           <el-collapse-item
             v-for="(src, idx) in result.sources"
@@ -123,24 +123,24 @@
           >
             <pre class="source-content">{{ src.content }}</pre>
             <div class="source-meta">
-              <span>机构：{{ src.organId ?? '-' }}</span>
-              <span>分类：{{ src.categoryId ?? '-' }}</span>
-              <span>范围：{{ src.visibility || '-' }}</span>
-              <span>版本：{{ src.revisionNo || '-' }}</span>
-              <span>页码：{{ src.page ?? '-' }}</span>
-              <span>引用：{{ src.citation || '-' }}</span>
+              <span>{{ $t('G2_FIELD_ORGAN', '所属机构') }}：{{ src.organId ?? '-' }}</span>
+              <span>{{ $t('G2_FIELD_CATEGORY', '分类') }}：{{ src.categoryId ?? '-' }}</span>
+              <span>{{ $t('KN_FIELD_VISIBILITY', '共享范围') }}：{{ src.visibility || '-' }}</span>
+              <span>{{ $t('G2_FIELD_VERSION', '版本号') }}：{{ src.revisionNo || '-' }}</span>
+              <span>{{ $t('KN_FIELD_PAGE', '页码') }}：{{ src.page ?? '-' }}</span>
+              <span>{{ $t('KN_FIELD_CITATION', '引用') }}：{{ src.citation || '-' }}</span>
             </div>
           </el-collapse-item>
         </el-collapse>
       </div>
 
       <el-collapse class="diag">
-        <el-collapse-item title="诊断信息" name="diag">
+        <el-collapse-item :title="$t('KN_SEARCH_DIAG', '诊断信息')" name="diag">
           <el-descriptions :column="1" border>
-            <el-descriptions-item label="可回答">{{ result.answerable ? '是' : '否' }}</el-descriptions-item>
-            <el-descriptions-item label="原因码">{{ result.reasonCode || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="$t('KN_FIELD_ANSWERABLE', '可回答')">{{ result.answerable ? '是' : '否' }}</el-descriptions-item>
+            <el-descriptions-item :label="$t('KN_FIELD_REASON_CODE', '原因码')">{{ result.reasonCode || '-' }}</el-descriptions-item>
             <el-descriptions-item label="traceId">{{ result.traceId || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="证据得分">
+            <el-descriptions-item :label="$t('KN_FIELD_EVIDENCE_SCORE', '证据得分')">
               <div v-for="(src, idx) in result.sources || []" :key="`score-${idx}`">
                 #{{ idx + 1 }}：{{ src.score ?? '-' }}
               </div>
@@ -156,6 +156,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
+import { t } from '@platform/i18n';
 import { KnowledgeSearchApi } from './api';
 import type { KnowledgeAnswerResult, KnowledgeEvidence, KnowledgeRetrieveResult } from './type';
 import { KnowledgeAnswerTemplateApi } from '@/views/knowledge_answer_template/api';
@@ -203,7 +204,7 @@ const onModeChange = () => {
 
 const runVerify = async () => {
   if (!form.query.trim()) {
-    ElMessage.warning('请输入问题');
+    ElMessage.warning(t('KN_SEARCH_WARN_QUESTION', '请输入问题'));
     return;
   }
   loading.value = true;
