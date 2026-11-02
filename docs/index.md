@@ -52,4 +52,4 @@
 ## 发布
 
 - [发布记录与流程](releases/README.md)
-- [v1.0.0：配套、验证与已知限制](releases/v1.0.0.md)
+- [v1.0.0：知识库运营应用与 GHCR 镜像发布流程](releases/v1.0.0.md)

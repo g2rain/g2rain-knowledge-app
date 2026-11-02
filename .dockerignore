@@ -28,6 +28,10 @@ coverage
 .env.local
 .env.*.local
 
+# 运行时签名密钥必须在部署时以 Secret/Volume 注入；保留说明文件供镜像使用者查阅。
+lua/keys/*
+!lua/keys/README.md
+
 # 日志文件
 logs
 *.log
