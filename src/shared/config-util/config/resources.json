@@ -1,9 +1,14 @@
 {
   "pages": [
     {
-      "pageName": "知识内容",
+      "pageName": "本机构知识",
       "pageCode": "knowledge_item",
       "linkPath": "/knowledge_item"
+    },
+    {
+      "pageName": "公共知识",
+      "pageCode": "knowledge_public",
+      "linkPath": "/knowledge_public"
     },
     {
       "pageName": "内容审核",
@@ -112,6 +117,14 @@
       "parentId": null,
       "pageElementName": "编辑",
       "pageElementCode": "knowledge_item:edit",
+      "pageElementType": "button",
+      "pageCode": "knowledge_item",
+      "status": "ENABLED"
+    },
+    {
+      "parentId": null,
+      "pageElementName": "导入",
+      "pageElementCode": "knowledge_item:import",
       "pageElementType": "button",
       "pageCode": "knowledge_item",
       "status": "ENABLED"

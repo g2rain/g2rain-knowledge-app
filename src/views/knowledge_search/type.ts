@@ -2,6 +2,9 @@ export interface KnowledgeEvidence {
   knowledgeId?: number;
   revisionId?: number;
   chunkId?: number;
+  organId?: number;
+  categoryId?: number;
+  visibility?: string;
   content?: string;
   title?: string;
   section?: string;
@@ -16,6 +19,7 @@ export interface KnowledgeRetrievePayload {
   allTagCodes?: string[];
   anyTagCodes?: string[];
   topK?: number;
+  includePublic?: boolean;
 }
 
 export interface KnowledgeAnswerPayload extends KnowledgeRetrievePayload {

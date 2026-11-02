@@ -2,16 +2,23 @@
   <div class="knowledge_tag-page">
     <el-card class="knowledge_tag-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
-        <el-form-item label="标签编码">
-          <el-input v-model="queryForm.tagCode" placeholder="稳定编码" clearable style="width: 200px" />
+        <el-form-item :label="$t('G2_FIELD_ORGAN', '所属机构')">
+          <OrganSelect v-model="queryForm.organId" />
         </el-form-item>
-        <el-form-item label="标签名称">
-          <el-input v-model="queryForm.tagName" placeholder="展示名称" clearable style="width: 200px" />
+        <el-form-item :label="$t('G2_FIELD_CODE', '编码')">
+          <el-input v-model="queryForm.tagCode" :placeholder="$t('G2_PH_CODE', '请输入编码')" clearable style="width: 200px" />
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="queryForm.status" placeholder="状态" clearable style="width: 160px">
-            <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
+        <el-form-item :label="$t('G2_FIELD_NAME', '名称')">
+          <el-input v-model="queryForm.tagName" :placeholder="$t('G2_PH_NAME', '请输入名称')" clearable style="width: 200px" />
+        </el-form-item>
+        <el-form-item :label="$t('G2_FIELD_STATUS', '状态')">
+          <DictSelect
+            v-model="queryForm.status"
+            usage-code="ENABLE_STATUS"
+            :placeholder="$t('G2_PH_STATUS', '请选择状态')"
+            clearable
+            width="160px"
+          />
         </el-form-item>
         <template #actions>
           <el-form-item>
@@ -24,19 +31,24 @@
 
     <div class="knowledge_tag-page__header">
       <div class="knowledge_tag-page__title-group">
-        <h2>标签管理</h2>
+        <h2>{{ $t('G2_FIELD_TAG', '标签') }}</h2>
       </div>
-      <el-button type="primary" v-permission="'knowledge_tag:add'" @click="handleCreate">新增标签</el-button>
+      <el-button type="primary" v-permission="'knowledge_tag:add'" @click="handleCreate">{{ $t('G2_BTN_ADD_TAG', '新增标签') }}</el-button>
     </div>
 
     <SortableTable :data="tableData" border stripe style="width: 100%" :enable-multi-sort="true" @sort-change="handleSortChange">
-      <el-table-column prop="tagCode" label="编码" min-width="140" />
-      <el-table-column prop="tagName" label="名称" min-width="160" />
-      <el-table-column prop="status" label="状态" width="100">
-        <template #default="{ row }">{{ statusLabel(row.status) }}</template>
+      <el-table-column :label="$t('G2_FIELD_ORGAN', '所属机构')" min-width="140" show-overflow-tooltip>
+        <template #default="{ row }">{{ organName(row) }}</template>
       </el-table-column>
-      <el-table-column prop="sortOrder" label="排序" width="100" />
-      <el-table-column prop="remark" label="说明" min-width="160" show-overflow-tooltip />
+      <el-table-column prop="tagCode" :label="$t('G2_FIELD_CODE', '编码')" min-width="140" />
+      <el-table-column prop="tagName" :label="$t('G2_FIELD_NAME', '名称')" min-width="160" />
+      <el-table-column prop="status" :label="$t('G2_FIELD_STATUS', '状态')" width="100">
+        <template #default="{ row }">
+          <DictText :value="row.status" usage-code="ENABLE_STATUS" />
+        </template>
+      </el-table-column>
+      <el-table-column prop="sortOrder" :label="$t('G2_LBL_SORT', '排序')" width="100" />
+      <el-table-column prop="remark" :label="$t('G2_FIELD_DESCRIPTION', '说明')" min-width="160" show-overflow-tooltip />
       <TableColumn prop="updateTime" :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')" width="180" sortable="custom" />
       <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" fixed="right" width="220">
         <template #default="{ row }">
@@ -69,24 +81,22 @@
       />
     </div>
 
-    <el-dialog v-model="editDialogVisible" :title="isEdit ? '编辑标签' : '新增标签'" width="520px" destroy-on-close>
+    <el-dialog v-model="editDialogVisible" :title="isEdit ? $t('G2_BTN_EDIT_TAG', '编辑标签') : $t('G2_BTN_ADD_TAG', '新增标签')" width="520px" destroy-on-close>
       <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="88px">
-        <el-form-item label="编码" prop="tagCode">
-          <el-input v-model="editForm.tagCode" placeholder="稳定业务编码，创建后不可改" :disabled="isEdit" />
+        <el-form-item :label="$t('G2_FIELD_CODE', '编码')" prop="tagCode">
+          <el-input v-model="editForm.tagCode" :placeholder="$t('G2_PH_CODE', '请输入编码')" :disabled="isEdit" />
         </el-form-item>
-        <el-form-item label="名称" prop="tagName">
-          <el-input v-model="editForm.tagName" placeholder="展示名称" />
+        <el-form-item :label="$t('G2_FIELD_NAME', '名称')" prop="tagName">
+          <el-input v-model="editForm.tagName" :placeholder="$t('G2_PH_NAME', '请输入名称')" />
         </el-form-item>
-        <el-form-item label="排序" prop="sortOrder">
+        <el-form-item :label="$t('G2_LBL_SORT', '排序')" prop="sortOrder">
           <el-input-number v-model="editForm.sortOrder" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="editForm.status" placeholder="状态" style="width: 100%">
-            <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
+        <el-form-item :label="$t('G2_FIELD_STATUS', '状态')" prop="status">
+          <DictSelect v-model="editForm.status" usage-code="ENABLE_STATUS" :placeholder="$t('G2_PH_STATUS', '请选择状态')" width="100%" />
         </el-form-item>
-        <el-form-item label="说明" prop="remark">
-          <el-input v-model="editForm.remark" type="textarea" :rows="3" placeholder="说明" />
+        <el-form-item :label="$t('G2_FIELD_DESCRIPTION', '说明')" prop="remark">
+          <el-input v-model="editForm.remark" type="textarea" :rows="3" :placeholder="$t('G2_FIELD_DESCRIPTION', '说明')" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -95,13 +105,16 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="detailDialogVisible" title="标签明细" width="520px">
+    <el-dialog v-model="detailDialogVisible" :title="$t('G2_DETAIL_TAG', '标签明细')" width="520px">
       <el-descriptions :column="1" border>
-        <el-descriptions-item label="编码">{{ currentRow?.tagCode }}</el-descriptions-item>
-        <el-descriptions-item label="名称">{{ currentRow?.tagName }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ statusLabel(currentRow?.status) }}</el-descriptions-item>
-        <el-descriptions-item label="排序">{{ currentRow?.sortOrder }}</el-descriptions-item>
-        <el-descriptions-item label="说明">{{ currentRow?.remark }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_ORGAN', '所属机构')">{{ organName(currentRow) }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_CODE', '编码')">{{ currentRow?.tagCode }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_NAME', '名称')">{{ currentRow?.tagName }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_STATUS', '状态')">
+          <DictText :value="currentRow?.status" usage-code="ENABLE_STATUS" />
+        </el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_LBL_SORT', '排序')">{{ currentRow?.sortOrder }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_DESCRIPTION', '说明')">{{ currentRow?.remark }}</el-descriptions-item>
         <el-descriptions-item :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')">{{ currentRow?.updateTime }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
@@ -120,16 +133,18 @@ import { KnowledgeTagApi } from './api';
 import type { KnowledgeTag, KnowledgeTagPayload, KnowledgeTagQuery } from './type';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
-import { showErrorMessage } from '@/components';
+import { OrganSelect, DictSelect, DictText } from '@g2rain/ui/platform';
 import { compactQuery } from '@shared/knowledge/entity';
-import { ITEM_STATUS_OPTIONS } from '@/views/knowledge_revision/status';
-
-const statusOptions = ITEM_STATUS_OPTIONS;
-const statusLabel = (status?: string) => statusOptions.find((o) => o.value === status)?.label || status || '-';
+import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
 
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
-const queryForm = reactive({ tagCode: '', tagName: '', status: '' });
+const queryForm = reactive({
+  organId: undefined as number | null | undefined,
+  tagCode: '',
+  tagName: '',
+  status: '',
+});
 const pagination = reactive({ pageNum: 1, pageSize: 10, total: 0 });
 const tableData = ref<KnowledgeTag[]>([]);
 
@@ -143,8 +158,9 @@ const loadData = async () => {
     } as PageSelectListDto & KnowledgeTagQuery);
     tableData.value = pageData.records;
     pagination.total = pageData.total;
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_LOAD_FAIL', '加载列表失败'));
+    await ensureOrganNames(pageData.records);
+  } catch {
+    // 请求失败已由 http 层统一提示
   }
 };
 
@@ -155,6 +171,7 @@ const handleSearch = () => {
 };
 const handleReset = () => {
   baseQueryForm.value = {};
+  queryForm.organId = undefined;
   queryForm.tagCode = '';
   queryForm.tagName = '';
   queryForm.status = '';
@@ -179,16 +196,12 @@ const handleView = (row: KnowledgeTag) => {
 };
 
 const handleDelete = (row: KnowledgeTag) => {
-  ElMessageBox.confirm(`确认删除标签「${row.tagName}」吗？`, t('G2_LBL_TIP', '提示'), { type: 'warning' })
+  ElMessageBox.confirm(t('KN_TAG_DEL_CONFIRM', { name: row.tagName }, '确认删除标签「{name}」吗？'), t('G2_LBL_TIP', '提示'), { type: 'warning' })
     .then(async () => {
-      try {
-        await KnowledgeTagApi.remove(row.id);
-        if (tableData.value.length === 1 && pagination.pageNum > 1) pagination.pageNum--;
-        await loadData();
-        ElMessage.success(t('G2_MSG_DELETE_OK', '删除成功'));
-      } catch (error: unknown) {
-        showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_DELETE_FAIL', '删除失败'));
-      }
+      await KnowledgeTagApi.remove(row.id);
+      if (tableData.value.length === 1 && pagination.pageNum > 1) pagination.pageNum--;
+      await loadData();
+      ElMessage.success(t('G2_MSG_DELETE_OK', '删除成功'));
     })
     .catch(() => {});
 };
@@ -205,10 +218,10 @@ const editForm = reactive({
   remark: '',
 });
 const editRules: FormRules = {
-  tagCode: [{ required: true, message: '请输入标签编码', trigger: 'blur' }],
-  tagName: [{ required: true, message: '请输入标签名称', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }],
-  sortOrder: [{ required: true, message: '请输入排序', trigger: 'blur' }],
+  tagCode: [{ required: true, message: t('G2_PH_CODE', '请输入编码'), trigger: 'blur' }],
+  tagName: [{ required: true, message: t('G2_PH_NAME', '请输入名称'), trigger: 'blur' }],
+  status: [{ required: true, message: t('G2_PH_STATUS', '请选择状态'), trigger: 'change' }],
+  sortOrder: [{ required: true, message: t('G2_LBL_SORT', '排序'), trigger: 'blur' }],
 };
 
 const handleCreate = () => {
@@ -244,14 +257,10 @@ const submitEdit = async () => {
     remark: editForm.remark,
   };
   if (isEdit.value) payload.id = editForm.id;
-  try {
-    await KnowledgeTagApi.save(payload);
-    ElMessage.success(isEdit.value ? t('G2_MSG_UPDATE_OK', '更新成功') : t('G2_MSG_ADD_OK', '新增成功'));
-    await loadData();
-    editDialogVisible.value = false;
-  } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : t('G2_MSG_SAVE_FAIL', '保存失败'));
-  }
+  await KnowledgeTagApi.save(payload);
+  ElMessage.success(isEdit.value ? t('G2_MSG_UPDATE_OK', '更新成功') : t('G2_MSG_ADD_OK', '新增成功'));
+  await loadData();
+  editDialogVisible.value = false;
 };
 
 onMounted(() => loadData());

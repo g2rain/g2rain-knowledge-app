@@ -9,6 +9,7 @@ import type { BaseSelectListDto, BaseVo } from '@platform/types/api.type';
  */
 export interface KnowledgeTask extends BaseVo {
   organId: number;
+  organName?: string;
   revisionId: number;
   taskType: string;
   taskStatus: string;
