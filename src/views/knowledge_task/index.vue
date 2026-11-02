@@ -2,10 +2,10 @@
   <div class="knowledge_task-page">
     <el-card class="knowledge_task-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
-        <el-form-item label="所属机构">
+        <el-form-item :label="$t('G2_FIELD_ORGAN', '所属机构')">
           <OrganSelect v-model="queryForm.organId" />
         </el-form-item>
-        <el-form-item label="队列类型">
+        <el-form-item :label="$t('KN_FIELD_QUEUE', '队列类型')">
           <el-select v-model="queryForm.queueType" style="width: 160px" @change="handleSearch">
             <el-option
               v-for="opt in queueOptions"
@@ -15,57 +15,57 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="知识名称">
-          <el-input v-model="queryForm.knowledgeName" placeholder="知识名称" clearable style="width: 180px" />
+        <el-form-item :label="$t('G2_FIELD_NAME', '名称')">
+          <el-input v-model="queryForm.knowledgeName" :placeholder="$t('G2_PH_NAME', '请输入名称')" clearable style="width: 180px" />
         </el-form-item>
-        <el-form-item label="版本号">
-          <el-input v-model="queryForm.revisionNo" placeholder="版本号" clearable style="width: 140px" />
+        <el-form-item :label="$t('G2_FIELD_VERSION', '版本号')">
+          <el-input v-model="queryForm.revisionNo" :placeholder="$t('G2_FIELD_VERSION', '版本号')" clearable style="width: 140px" />
         </el-form-item>
         <template #actions>
           <el-form-item>
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
+            <el-button type="primary" @click="handleSearch">{{ $t('G2_BTN_QUERY', '查询') }}</el-button>
+            <el-button @click="handleReset">{{ $t('G2_BTN_RESET', '重置') }}</el-button>
           </el-form-item>
         </template>
       </QueryForm>
     </el-card>
 
     <div class="knowledge_task-page__header">
-      <h2>知识处理</h2>
-      <el-tag type="info">默认待处理队列</el-tag>
+      <h2>{{ $t('KN_TASK_TITLE', '知识处理') }}</h2>
+      <el-tag type="info">{{ $t('KN_TASK_TAG_DEFAULT', '默认待处理队列') }}</el-tag>
     </div>
 
     <el-table v-loading="loading" :data="tableData" border stripe style="width: 100%">
-      <el-table-column label="机构名称" min-width="140" show-overflow-tooltip>
+      <el-table-column :label="$t('G2_FIELD_ORGAN', '所属机构')" min-width="140" show-overflow-tooltip>
         <template #default="{ row }">{{ organName(row) }}</template>
       </el-table-column>
-      <el-table-column prop="knowledgeName" label="知识名称" min-width="160" show-overflow-tooltip />
-      <el-table-column prop="revisionNo" label="版本号" width="110" />
+      <el-table-column prop="knowledgeName" :label="$t('G2_FIELD_NAME', '名称')" min-width="160" show-overflow-tooltip />
+      <el-table-column prop="revisionNo" :label="$t('G2_FIELD_VERSION', '版本号')" width="110" />
       <template v-if="isPendingQueue">
-        <el-table-column prop="revisionStatus" label="版本状态" width="120">
+        <el-table-column prop="revisionStatus" :label="$t('KN_FIELD_REVISION_STATUS', '版本状态')" width="120">
           <template #default="{ row }">{{ getRevisionStatusInfo(row.revisionStatus).label }}</template>
         </el-table-column>
-        <el-table-column prop="updateTime" label="更新时间" width="170" />
-        <el-table-column label="操作" width="140" fixed="right">
+        <el-table-column prop="updateTime" :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')" width="170" />
+        <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" width="140" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link v-permission="'knowledge_task:process'" @click="startProcess(row)">
-              开始处理
+              {{ $t('KN_BTN_START_PROCESS', '开始处理') }}
             </el-button>
           </template>
         </el-table-column>
       </template>
       <template v-else>
-        <el-table-column prop="taskType" label="任务类型" width="110" />
-        <el-table-column prop="taskStatus" label="任务状态" width="110" />
-        <el-table-column prop="attemptNo" label="尝试" width="80" />
-        <el-table-column label="耗时" width="100">
+        <el-table-column prop="taskType" :label="$t('KN_FIELD_TASK_TYPE', '任务类型')" width="110" />
+        <el-table-column prop="taskStatus" :label="$t('KN_FIELD_TASK_STATUS', '任务状态')" width="110" />
+        <el-table-column prop="attemptNo" :label="$t('KN_FIELD_ATTEMPT', '尝试')" width="80" />
+        <el-table-column :label="$t('G2_FIELD_DURATION', '耗时')" width="100">
           <template #default="{ row }">{{ formatDuration(row) }}</template>
         </el-table-column>
-        <el-table-column prop="errorCode" label="错误码" width="120" show-overflow-tooltip />
-        <el-table-column prop="errorSummary" label="摘要" min-width="160" show-overflow-tooltip />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column prop="errorCode" :label="$t('G2_LBL_ERR_CODE', '错误码')" width="120" show-overflow-tooltip />
+        <el-table-column prop="errorSummary" :label="$t('G2_FIELD_SUMMARY', '摘要')" min-width="160" show-overflow-tooltip />
+        <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link @click="openDetail(row)">详情</el-button>
+            <el-button type="primary" link @click="openDetail(row)">{{ $t('G2_BTN_DETAIL', '详情') }}</el-button>
             <el-button
               v-if="row.taskStatus === 'FAILED'"
               type="primary"
@@ -73,7 +73,7 @@
               v-permission="'knowledge_task:retry'"
               @click="retryTask(row)"
             >
-              重试
+              {{ $t('G2_BTN_RETRY', '重试') }}
             </el-button>
             <el-button
               v-if="row.taskStatus === 'PENDING'"
@@ -82,7 +82,7 @@
               v-permission="'knowledge_task:cancel'"
               @click="cancelTask(row)"
             >
-              取消
+              {{ $t('G2_BTN_CANCEL', '取消') }}
             </el-button>
           </template>
         </el-table-column>
@@ -102,20 +102,20 @@
       />
     </div>
 
-    <el-drawer v-model="detailVisible" title="任务详情" :size="OVERLAY_SIZE.drawer" destroy-on-close>
+    <el-drawer v-model="detailVisible" :title="$t('KN_TASK_DETAIL', '任务详情')" :size="OVERLAY_SIZE.drawer" destroy-on-close>
       <el-descriptions v-if="detail" :column="1" border>
-        <el-descriptions-item label="机构名称">{{ organName(detail) }}</el-descriptions-item>
-        <el-descriptions-item label="知识名称">{{ detail.knowledgeName }}</el-descriptions-item>
-        <el-descriptions-item label="版本号">{{ detail.revisionNo }}</el-descriptions-item>
-        <el-descriptions-item label="任务类型">{{ detail.taskType }}</el-descriptions-item>
-        <el-descriptions-item label="任务状态">{{ detail.taskStatus }}</el-descriptions-item>
-        <el-descriptions-item label="版本状态">
+        <el-descriptions-item :label="$t('G2_FIELD_ORGAN', '所属机构')">{{ organName(detail) }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_NAME', '名称')">{{ detail.knowledgeName }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_VERSION', '版本号')">{{ detail.revisionNo }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('KN_FIELD_TASK_TYPE', '任务类型')">{{ detail.taskType }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('KN_FIELD_TASK_STATUS', '任务状态')">{{ detail.taskStatus }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('KN_FIELD_REVISION_STATUS', '版本状态')">
           {{ getRevisionStatusInfo(detail.revisionStatus).label }}
         </el-descriptions-item>
-        <el-descriptions-item label="尝试次数">{{ detail.attemptNo }}</el-descriptions-item>
-        <el-descriptions-item label="耗时">{{ formatDuration(detail) }}</el-descriptions-item>
-        <el-descriptions-item label="错误码">{{ detail.errorCode || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="摘要">{{ detail.errorSummary || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('KN_FIELD_ATTEMPT', '尝试次数')">{{ detail.attemptNo }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_DURATION', '耗时')">{{ formatDuration(detail) }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_LBL_ERR_CODE', '错误码')">{{ detail.errorCode || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_SUMMARY', '摘要')">{{ detail.errorSummary || '-' }}</el-descriptions-item>
       </el-descriptions>
     </el-drawer>
   </div>
@@ -124,6 +124,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { t } from '@platform/i18n';
 import { QueryForm } from '@g2rain/ui';
 import { OrganSelect } from '@g2rain/ui/platform';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
@@ -153,12 +154,12 @@ interface TaskRow extends Partial<KnowledgeTask> {
 }
 
 const queueOptions: Array<{ label: string; value: QueueType }> = [
-  { label: '待处理', value: 'pending' },
-  { label: '待执行', value: 'pending_task' },
-  { label: '运行中', value: 'running' },
-  { label: '处理失败', value: 'failed' },
-  { label: '成功', value: 'success' },
-  { label: '已取消', value: 'canceled' },
+  { label: t('KN_QUEUE_PENDING', '待处理'), value: 'pending' },
+  { label: t('KN_QUEUE_PENDING_TASK', '待执行'), value: 'pending_task' },
+  { label: t('KN_QUEUE_RUNNING', '运行中'), value: 'running' },
+  { label: t('KN_QUEUE_FAILED', '处理失败'), value: 'failed' },
+  { label: t('G2_LBL_SUCCESS', '成功'), value: 'success' },
+  { label: t('KN_QUEUE_CANCELED', '已取消'), value: 'canceled' },
 ];
 
 const QUEUE_TASK_STATUS: Partial<Record<QueueType, string>> = {
@@ -189,8 +190,8 @@ const revisionCache = ref<Record<number, KnowledgeRevision>>({});
 const isPendingQueue = computed(() => queryForm.queueType === 'pending');
 
 const emptyText = computed(() => {
-  if (queryForm.queueType === 'pending') return '暂无待处理内容，可切换其他队列查看';
-  return '暂无数据';
+  if (queryForm.queueType === 'pending') return t('KN_TASK_EMPTY_PENDING', '暂无待处理内容，可切换其他队列查看');
+  return t('G2_EMPTY_DATA', '暂无数据');
 });
 
 const shouldPoll = computed(
@@ -374,9 +375,13 @@ const handlePageChange = (page: number) => {
 
 const startProcess = async (row: TaskRow) => {
   try {
-    await ElMessageBox.confirm(`确认开始处理版本「${row.revisionNo}」？`, '开始处理', { type: 'warning' });
+    await ElMessageBox.confirm(
+      t('KN_TASK_CONFIRM_START', { no: row.revisionNo }, '确认开始处理版本「{no}」？'),
+      t('KN_BTN_START_PROCESS', '开始处理'),
+      { type: 'warning' },
+    );
     await KnowledgeTaskApi.startProcess(row.revisionId);
-    ElMessage.success('已开始处理，可在「待执行 / 运行中」查看进度');
+    ElMessage.success(t('KN_TASK_OK_START', '已开始处理，可在「待执行 / 运行中」查看进度'));
     await loadData();
   } catch {
     /* 取消确认或请求失败已由 http 层统一提示 */
@@ -385,25 +390,35 @@ const startProcess = async (row: TaskRow) => {
 
 const retryTask = async (row: TaskRow) => {
   if (!row.id || row.version == null) {
-    showErrorMessage('缺少任务版本，请刷新列表后重试');
+    showErrorMessage(t('KN_TASK_ERR_VERSION', '缺少任务版本，请刷新列表后重试'));
     return;
   }
   await KnowledgeTaskApi.retry({ taskId: row.id, expectedVersion: row.version });
-  ElMessage.success('已提交重试');
+  ElMessage.success(t('KN_TASK_OK_RETRY', '已提交重试'));
   await loadData();
   startPoll();
 };
 
 const cancelTask = async (row: TaskRow) => {
   if (!row.id || row.version == null) {
-    showErrorMessage('缺少任务版本，请刷新列表后重试');
+    showErrorMessage(t('KN_TASK_ERR_VERSION', '缺少任务版本，请刷新列表后重试'));
     return;
   }
   try {
-    await ElMessageBox.confirm('确认取消该待执行任务？', '取消任务', { type: 'warning' });
+    await ElMessageBox.confirm(
+      t('KN_TASK_CONFIRM_CANCEL', '确认取消该待执行任务？'),
+      t('KN_TASK_TITLE_CANCEL', '取消任务'),
+      { type: 'warning' },
+    );
     await KnowledgeTaskApi.cancel({ taskId: row.id, expectedVersion: row.version });
     const revision = await KnowledgeRevisionApi.getById(row.revisionId);
-    ElMessage.success(`任务已取消。当前版本状态：${getRevisionStatusInfo(revision.revisionStatus).label}`);
+    ElMessage.success(
+      t(
+        'KN_TASK_OK_CANCEL',
+        { status: getRevisionStatusInfo(revision.revisionStatus).label },
+        '任务已取消。当前版本状态：{status}',
+      ),
+    );
     await loadData();
   } catch {
     /* 取消确认或请求失败已由 http 层统一提示 */
@@ -417,7 +432,7 @@ const openDetail = async (row: TaskRow) => {
       const revision = await KnowledgeRevisionApi.getById(row.revisionId);
       detail.value = { ...row, revisionStatus: revision.revisionStatus };
       if (revision.revisionStatus === 'READY_TO_PUBLISH' && row.taskStatus === 'SUCCESS') {
-        ElMessage.success('处理完成，可在发布管理发布');
+        ElMessage.success(t('KN_TASK_OK_READY', '处理完成，可在发布管理发布'));
       }
     } catch {
       /* ignore */

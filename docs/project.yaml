@@ -1,9 +1,14 @@
 schemaVersion: 1
 name: g2rain-knowledge-app
 family: frontend-app
-role: g2rain Vue 3 微前端业务应用
+role: G2rain（谷雨）开源智能体平台的知识库运营应用
 packageName: g2rain-knowledge-app
 version: 1.0.0
+status: released
+availability:
+  deployment: available
+  scope: 现有知识库运营能力可私有部署使用，依赖 IAM、Gateway、Basis 资源及知识服务
+  note: 应用稳定版与 frontend-app 架构试点状态分别记录；独立模式不代表无需平台服务
 license: Apache-2.0
 
 architectureBaseline:
@@ -36,7 +41,7 @@ dependencies:
 generation:
   cli:
     name: create-g2rain-app
-    version: "1.0.0"
+    version: "1.0.1"
   template:
     repository: "https://github.com/g2rain/g2rain-app-template"
     tag: "v1.0.0"

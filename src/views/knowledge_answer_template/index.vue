@@ -2,19 +2,23 @@
   <div class="knowledge_answer_template-page">
     <el-card class="knowledge_answer_template-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
-        <el-form-item label="所属机构">
+        <el-form-item :label="$t('G2_FIELD_ORGAN', '所属机构')">
           <OrganSelect v-model="queryForm.organId" />
         </el-form-item>
-        <el-form-item label="模板编码">
-          <el-input v-model="queryForm.templateCode" placeholder="模板编码" clearable style="width: 200px" />
+        <el-form-item :label="$t('G2_FIELD_CODE', '编码')">
+          <el-input v-model="queryForm.templateCode" :placeholder="$t('G2_FIELD_CODE', '编码')" clearable style="width: 200px" />
         </el-form-item>
-        <el-form-item label="模板名称">
-          <el-input v-model="queryForm.templateName" placeholder="模板名称" clearable style="width: 200px" />
+        <el-form-item :label="$t('G2_FIELD_NAME', '名称')">
+          <el-input v-model="queryForm.templateName" :placeholder="$t('G2_FIELD_NAME', '名称')" clearable style="width: 200px" />
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="queryForm.status" placeholder="状态" clearable style="width: 160px">
-            <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
+        <el-form-item :label="$t('G2_FIELD_STATUS', '状态')">
+          <DictSelect
+            v-model="queryForm.status"
+            usage-code="ENABLE_STATUS"
+            :placeholder="$t('G2_PH_STATUS', '请选择状态')"
+            clearable
+            width="160px"
+          />
         </el-form-item>
         <template #actions>
           <el-form-item>
@@ -27,27 +31,29 @@
 
     <div class="knowledge_answer_template-page__header">
       <div class="knowledge_answer_template-page__title-group">
-        <h2>回复模板</h2>
+        <h2>{{ $t('KN_TEMPLATE_TITLE', '回答模板') }}</h2>
       </div>
-      <el-button type="primary" v-permission="'knowledge_answer_template:add'" @click="handleCreate">新增模板</el-button>
+      <el-button type="primary" v-permission="'knowledge_answer_template:add'" @click="handleCreate">{{ $t('KN_TEMPLATE_BTN_ADD', '新增模板') }}</el-button>
     </div>
 
     <SortableTable :data="tableData" border stripe style="width: 100%" :enable-multi-sort="true" @sort-change="handleSortChange">
-      <el-table-column label="机构名称" min-width="140" show-overflow-tooltip>
+      <el-table-column :label="$t('G2_FIELD_ORGAN', '所属机构')" min-width="140" show-overflow-tooltip>
         <template #default="{ row }">{{ organName(row) }}</template>
       </el-table-column>
-      <el-table-column prop="templateCode" label="编码" min-width="140" />
-      <el-table-column prop="templateName" label="名称" min-width="160" />
-      <el-table-column prop="status" label="状态" width="100">
-        <template #default="{ row }">{{ statusLabel(row.status) }}</template>
+      <el-table-column prop="templateCode" :label="$t('G2_FIELD_CODE', '编码')" min-width="140" />
+      <el-table-column prop="templateName" :label="$t('G2_FIELD_NAME', '名称')" min-width="160" />
+      <el-table-column prop="status" :label="$t('G2_FIELD_STATUS', '状态')" width="100">
+        <template #default="{ row }">
+          <DictText :value="row.status" usage-code="ENABLE_STATUS" />
+        </template>
       </el-table-column>
-      <el-table-column prop="systemPrompt" label="提示词" min-width="220" show-overflow-tooltip />
-      <el-table-column prop="remark" label="说明" min-width="140" show-overflow-tooltip />
+      <el-table-column prop="systemPrompt" :label="$t('KN_FIELD_PROMPT', '提示词')" min-width="220" show-overflow-tooltip />
+      <el-table-column prop="remark" :label="$t('G2_FIELD_DESCRIPTION', '说明')" min-width="140" show-overflow-tooltip />
       <TableColumn prop="updateTime" :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')" width="180" sortable="custom" />
       <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" fixed="right" width="260">
         <template #default="{ row }">
           <el-button type="primary" link size="small" @click="handleView(row)">{{ $t('G2_BTN_DETAIL', '明细') }}</el-button>
-          <el-button type="primary" link size="small" @click="handlePreview(row)">预览</el-button>
+          <el-button type="primary" link size="small" @click="handlePreview(row)">{{ $t('KN_BTN_PREVIEW', '预览') }}</el-button>
           <el-button type="primary" v-permission="'knowledge_answer_template:edit'" link size="small" @click="handleEdit(row)">
             {{ $t('G2_BTN_EDIT', '编辑') }}
           </el-button>
@@ -76,38 +82,36 @@
       />
     </div>
 
-    <el-dialog v-model="editDialogVisible" :title="isEdit ? '编辑回复模板' : '新增回复模板'" width="720px" destroy-on-close>
+    <el-dialog v-model="editDialogVisible" :title="isEdit ? $t('KN_TEMPLATE_DLG_EDIT', '编辑模板') : $t('KN_TEMPLATE_DLG_ADD', '新增模板')" width="720px" destroy-on-close>
       <el-alert
         type="info"
         :closable="false"
         show-icon
-        title="停用后问答将无法选择该模板；提示词仅用于服务端组装，预览不会调用模型。"
+        :title="$t('KN_TEMPLATE_TIP_EDIT', '停用后问答将无法选择该模板；提示词仅用于服务端组装，预览不会调用模型。')"
         style="margin-bottom: 16px"
       />
       <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="88px">
-        <el-form-item label="编码" prop="templateCode">
-          <el-input v-model="editForm.templateCode" placeholder="稳定模板编码" :disabled="isEdit" />
+        <el-form-item :label="$t('G2_FIELD_CODE', '编码')" prop="templateCode">
+          <el-input v-model="editForm.templateCode" :placeholder="$t('G2_FIELD_CODE', '编码')" :disabled="isEdit" />
         </el-form-item>
-        <el-form-item label="名称" prop="templateName">
-          <el-input v-model="editForm.templateName" placeholder="展示名称" />
+        <el-form-item :label="$t('G2_FIELD_NAME', '名称')" prop="templateName">
+          <el-input v-model="editForm.templateName" :placeholder="$t('G2_FIELD_NAME', '名称')" />
         </el-form-item>
-        <el-form-item label="提示词" prop="systemPrompt">
+        <el-form-item :label="$t('KN_FIELD_PROMPT', '提示词')" prop="systemPrompt">
           <el-input
             v-model="editForm.systemPrompt"
             type="textarea"
             :rows="12"
             maxlength="8000"
             show-word-limit
-            placeholder="服务端回复模板内容"
+            :placeholder="$t('KN_FIELD_PROMPT', '提示词')"
           />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="editForm.status" placeholder="状态" style="width: 100%">
-            <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
+        <el-form-item :label="$t('G2_FIELD_STATUS', '状态')" prop="status">
+          <DictSelect v-model="editForm.status" usage-code="ENABLE_STATUS" :placeholder="$t('G2_PH_STATUS', '请选择状态')" width="100%" />
         </el-form-item>
-        <el-form-item label="说明" prop="remark">
-          <el-input v-model="editForm.remark" type="textarea" :rows="2" placeholder="说明" />
+        <el-form-item :label="$t('G2_FIELD_DESCRIPTION', '说明')" prop="remark">
+          <el-input v-model="editForm.remark" type="textarea" :rows="2" :placeholder="$t('G2_FIELD_DESCRIPTION', '说明')" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -116,24 +120,26 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="detailDialogVisible" title="模板明细" width="720px">
+    <el-dialog v-model="detailDialogVisible" :title="$t('KN_TEMPLATE_DETAIL', '模板明细')" width="720px">
       <el-descriptions :column="1" border>
-        <el-descriptions-item label="机构名称">{{ organName(currentRow) }}</el-descriptions-item>
-        <el-descriptions-item label="编码">{{ currentRow?.templateCode }}</el-descriptions-item>
-        <el-descriptions-item label="名称">{{ currentRow?.templateName }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ statusLabel(currentRow?.status) }}</el-descriptions-item>
-        <el-descriptions-item label="提示词">
+        <el-descriptions-item :label="$t('G2_FIELD_ORGAN', '所属机构')">{{ organName(currentRow) }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_CODE', '编码')">{{ currentRow?.templateCode }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_NAME', '名称')">{{ currentRow?.templateName }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_STATUS', '状态')">
+          <DictText :value="currentRow?.status" usage-code="ENABLE_STATUS" />
+        </el-descriptions-item>
+        <el-descriptions-item :label="$t('KN_FIELD_PROMPT', '提示词')">
           <pre class="prompt-preview">{{ currentRow?.systemPrompt }}</pre>
         </el-descriptions-item>
-        <el-descriptions-item label="说明">{{ currentRow?.remark }}</el-descriptions-item>
+        <el-descriptions-item :label="$t('G2_FIELD_DESCRIPTION', '说明')">{{ currentRow?.remark }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
         <el-button type="primary" @click="detailDialogVisible = false">{{ $t('G2_BTN_CLOSE', '关闭') }}</el-button>
       </template>
     </el-dialog>
 
-    <el-dialog v-model="previewVisible" title="提示词预览（不调用模型）" width="720px">
-      <el-alert type="warning" :closable="false" show-icon title="仅展示模板文本，未发起模型调用。" style="margin-bottom: 12px" />
+    <el-dialog v-model="previewVisible" :title="$t('KN_TEMPLATE_PREVIEW', '提示词预览（不调用模型）')" width="720px">
+      <el-alert type="warning" :closable="false" show-icon :title="$t('KN_TEMPLATE_PREVIEW_TIP', '仅展示模板文本，未发起模型调用。')" style="margin-bottom: 12px" />
       <pre class="prompt-preview">{{ previewText }}</pre>
       <template #footer>
         <el-button type="primary" @click="previewVisible = false">{{ $t('G2_BTN_CLOSE', '关闭') }}</el-button>
@@ -155,13 +161,9 @@ import type {
 } from './type';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
-import { OrganSelect } from '@g2rain/ui/platform';
+import { OrganSelect, DictSelect, DictText } from '@g2rain/ui/platform';
 import { compactQuery } from '@shared/knowledge/entity';
 import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
-import { ITEM_STATUS_OPTIONS } from '@/views/knowledge_revision/status';
-
-const statusOptions = ITEM_STATUS_OPTIONS;
-const statusLabel = (status?: string) => statusOptions.find((o) => o.value === status)?.label || status || '-';
 
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
@@ -229,7 +231,7 @@ const handlePreview = (row: KnowledgeAnswerTemplate) => {
 };
 
 const handleDelete = (row: KnowledgeAnswerTemplate) => {
-  ElMessageBox.confirm(`确认删除模板「${row.templateName}」吗？`, t('G2_LBL_TIP', '提示'), { type: 'warning' })
+  ElMessageBox.confirm(t('KN_TEMPLATE_DEL_CONFIRM', { name: row.templateName }, '确认删除模板「{name}」吗？'), t('G2_LBL_TIP', '提示'), { type: 'warning' })
     .then(async () => {
       await KnowledgeAnswerTemplateApi.remove(row.id);
       if (tableData.value.length === 1 && pagination.pageNum > 1) pagination.pageNum--;
@@ -254,7 +256,7 @@ const editRules: FormRules = {
   templateCode: [{ required: true, message: '请输入模板编码', trigger: 'blur' }],
   templateName: [{ required: true, message: '请输入模板名称', trigger: 'blur' }],
   systemPrompt: [{ required: true, message: '请输入提示词', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }],
+  status: [{ required: true, message: t('G2_PH_STATUS', '请选择状态'), trigger: 'change' }],
 };
 
 const handleCreate = () => {

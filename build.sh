@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build + Docker image for g2rain-app-template
+# Build the g2rain-knowledge-app container image with the same Dockerfile used by CI.
 #
 # Usage:
 #   ./build.sh
-#   ./build.sh --image g2rain/g2rain-app-template --tag latest --build-mode production
+#   ./build.sh --image ghcr.io/g2rain/g2rain-knowledge-app --tag 1.0.0 --build-mode production
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$APP_DIR"
 
-IMAGE="g2rain/g2rain-knowledge-app"
-TAG="latest"
+IMAGE="ghcr.io/g2rain/g2rain-knowledge-app"
+TAG="1.0.0"
 BUILD_MODE="production"
 
 while [[ $# -gt 0 ]]; do
@@ -54,6 +54,8 @@ echo "Mode:    $BUILD_MODE"
 export DOCKER_BUILDKIT=1
 docker build \
   --build-arg "VITE_BUILD_MODE=$BUILD_MODE" \
+  --build-arg "IMAGE_VERSION=$TAG" \
+  --build-arg "VCS_REF=$(git rev-parse HEAD 2>/dev/null || printf unknown)" \
   -t "$IMAGE:$TAG" \
   .
 

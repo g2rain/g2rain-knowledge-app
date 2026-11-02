@@ -1,8 +1,12 @@
 <template>
   <div class="migrated-page">
-    <el-result icon="info" title="切片入口已迁移" sub-title="请在知识内容 → 版本详情 →「切片」页签中查看。">
+    <el-result
+      icon="info"
+      :title="$t('KN_CHUNK_MOVED_TITLE', '切片入口已迁移')"
+      :sub-title="$t('KN_CHUNK_MOVED_SUB', '请在知识内容 → 版本详情 →「切片」页签中查看。')"
+    >
       <template #extra>
-        <el-button type="primary" @click="goItem">进入知识内容</el-button>
+        <el-button type="primary" @click="goItem">{{ $t('KN_BTN_GO_ITEM', '进入知识内容') }}</el-button>
       </template>
     </el-result>
   </div>

@@ -2,29 +2,37 @@
   <div class="knowledge_item-page">
     <el-card class="knowledge_item-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
-        <el-form-item label="所属机构">
+        <el-form-item :label="$t('G2_FIELD_ORGAN', '所属机构')">
           <OrganSelect v-model="queryForm.organId" />
         </el-form-item>
-        <el-form-item label="名称">
-          <el-input v-model="queryForm.knowledgeName" placeholder="知识名称" clearable style="width: 200px" />
+        <el-form-item :label="$t('G2_FIELD_NAME', '名称')">
+          <el-input v-model="queryForm.knowledgeName" :placeholder="$t('G2_PH_NAME', '请输入名称')" clearable style="width: 200px" />
         </el-form-item>
-        <el-form-item label="知识键">
-          <el-input v-model="queryForm.knowledgeKey" placeholder="业务唯一键" clearable style="width: 200px" />
+        <el-form-item :label="$t('KN_FIELD_KNOWLEDGE_KEY', '知识键')">
+          <el-input v-model="queryForm.knowledgeKey" :placeholder="$t('KN_PH_KNOWLEDGE_KEY', '请输入知识键')" clearable style="width: 200px" />
         </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="queryForm.categoryId" placeholder="分类" clearable filterable style="width: 180px">
+        <el-form-item :label="$t('G2_FIELD_CATEGORY', '分类')">
+          <el-select v-model="queryForm.categoryId" :placeholder="$t('G2_PH_CATEGORY', '请选择分类')" clearable filterable style="width: 180px">
             <el-option v-for="c in categoryOptions" :key="c.id" :label="c.categoryName" :value="c.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="类型">
-          <el-select v-model="queryForm.knowledgeType" placeholder="类型" clearable style="width: 140px">
-            <el-option v-for="opt in typeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
+        <el-form-item :label="$t('G2_FIELD_TYPE', '类型')">
+          <DictSelect
+            v-model="queryForm.knowledgeType"
+            usage-code="KB_TYPE"
+            :placeholder="$t('KN_PH_TYPE', '请选择类型')"
+            clearable
+            width="140px"
+          />
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="queryForm.status" placeholder="启停" clearable style="width: 140px">
-            <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
+        <el-form-item :label="$t('G2_FIELD_STATUS', '状态')">
+          <DictSelect
+            v-model="queryForm.status"
+            usage-code="ENABLE_STATUS"
+            :placeholder="$t('G2_PH_STATUS', '请选择状态')"
+            clearable
+            width="140px"
+          />
         </el-form-item>
         <template #actions>
           <el-form-item>
@@ -37,52 +45,54 @@
 
     <div class="knowledge_item-page__header">
       <div class="knowledge_item-page__title-group">
-        <h2>知识内容</h2>
+        <h2>{{ $t('KN_ITEM_TITLE', '知识内容') }}</h2>
       </div>
       <div class="knowledge_item-page__actions">
-        <el-button v-permission="'knowledge_item:import'" @click="openImport">批量导入</el-button>
-        <el-button type="primary" v-permission="'knowledge_item:add'" @click="handleCreate">新建内容</el-button>
+        <el-button v-permission="'knowledge_item:import'" @click="openImport">{{ $t('KN_ITEM_BTN_IMPORT', '批量导入') }}</el-button>
+        <el-button type="primary" v-permission="'knowledge_item:add'" @click="handleCreate">{{ $t('KN_ITEM_BTN_ADD', '新建内容') }}</el-button>
       </div>
     </div>
 
     <SortableTable :data="tableData" border stripe style="width: 100%" :enable-multi-sort="true" @sort-change="handleSortChange">
-      <el-table-column label="机构名称" min-width="140" show-overflow-tooltip>
+      <el-table-column :label="$t('G2_FIELD_ORGAN', '所属机构')" min-width="140" show-overflow-tooltip>
         <template #default="{ row }">{{ organName(row) }}</template>
       </el-table-column>
-      <el-table-column prop="knowledgeName" label="名称" min-width="180">
+      <el-table-column prop="knowledgeName" :label="$t('G2_FIELD_NAME', '名称')" min-width="180">
         <template #default="{ row }">
           <el-button type="primary" link @click="openVersions(row)">{{ row.knowledgeName }}</el-button>
         </template>
       </el-table-column>
-      <el-table-column prop="categoryId" label="分类" width="140">
+      <el-table-column prop="categoryId" :label="$t('G2_FIELD_CATEGORY', '分类')" width="140">
         <template #default="{ row }">{{ categoryName(row.categoryId) }}</template>
       </el-table-column>
-      <el-table-column prop="knowledgeType" label="类型" width="100">
-        <template #default="{ row }">{{ typeLabel(row.knowledgeType) }}</template>
+      <el-table-column prop="knowledgeType" :label="$t('G2_FIELD_TYPE', '类型')" width="100">
+        <template #default="{ row }">
+          <DictText :value="row.knowledgeType" usage-code="KB_TYPE" />
+        </template>
       </el-table-column>
-      <el-table-column prop="priority" label="优先级" width="90" />
-      <el-table-column label="标签" min-width="160" show-overflow-tooltip>
+      <el-table-column prop="priority" :label="$t('KN_FIELD_PRIORITY', '优先级')" width="90" />
+      <el-table-column :label="$t('G2_FIELD_TAG', '标签')" min-width="160" show-overflow-tooltip>
         <template #default="{ row }">{{ formatTags(row.tagsJson) }}</template>
       </el-table-column>
-      <el-table-column label="当前生效版本" min-width="140">
+      <el-table-column :label="$t('KN_ITEM_FIELD_ACTIVE_REV', '当前生效版本')" min-width="140">
         <template #default="{ row }">{{ activeRevisionText(row.id) }}</template>
       </el-table-column>
-      <el-table-column prop="status" label="状态" width="90">
-        <template #default="{ row }">{{ statusLabel(row.status) }}</template>
-      </el-table-column>
-      <el-table-column label="共享范围" width="110">
+      <el-table-column prop="status" :label="$t('G2_FIELD_STATUS', '状态')" width="90">
         <template #default="{ row }">
-          <el-tag :type="row.visibility === 'PUBLIC' ? 'success' : 'info'" size="small">
-            {{ row.visibility === 'PUBLIC' ? '公共' : '本机构' }}
-          </el-tag>
+          <DictText :value="row.status" usage-code="ENABLE_STATUS" />
+        </template>
+      </el-table-column>
+      <el-table-column :label="$t('KN_FIELD_VISIBILITY', '共享范围')" width="110">
+        <template #default="{ row }">
+          <DictText :value="row.visibility" usage-code="KB_VISIBILITY" />
         </template>
       </el-table-column>
       <TableColumn prop="updateTime" :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')" width="180" sortable="custom" />
       <el-table-column :label="$t('G2_FIELD_ACTION', '操作')" fixed="right" width="340">
         <template #default="{ row }">
-          <el-button type="primary" link size="small" @click="openVersions(row)">查看版本</el-button>
+          <el-button type="primary" link size="small" @click="openVersions(row)">{{ $t('KN_ITEM_BTN_VERSIONS', '查看版本') }}</el-button>
           <el-button type="primary" link size="small" v-permission="'knowledge_revision:add'" @click="openVersions(row, true)">
-            新增版本
+            {{ $t('KN_ITEM_BTN_ADD_VERSION', '新增版本') }}
           </el-button>
           <el-button type="primary" v-permission="'knowledge_item:edit'" link size="small" @click="handleEdit(row)">
             {{ $t('G2_BTN_EDIT', '编辑') }}
@@ -94,7 +104,7 @@
             size="small"
             @click="toggleVisibility(row)"
           >
-            {{ row.visibility === 'PUBLIC' ? '设为私有' : '设为公共' }}
+            {{ row.visibility === 'PUBLIC' ? $t('KN_ITEM_BTN_SET_PRIVATE', '设为私有') : $t('KN_ITEM_BTN_SET_PUBLIC', '设为公共') }}
           </el-button>
         </template>
         <template #header>
@@ -120,42 +130,38 @@
 
     <el-drawer
       v-model="editDrawerVisible"
-      :title="isEdit ? '编辑知识内容' : '新建知识内容'"
+      :title="isEdit ? $t('G2_BTN_EDIT_CONTENT', '编辑内容') : $t('KN_ITEM_DLG_ADD', '新建内容')"
       :size="OVERLAY_SIZE.drawer"
       destroy-on-close
       :close-on-click-modal="false"
     >
       <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="96px">
-        <el-form-item label="名称" prop="knowledgeName">
-          <el-input v-model="editForm.knowledgeName" placeholder="知识名称" />
+        <el-form-item :label="$t('G2_FIELD_NAME', '名称')" prop="knowledgeName">
+          <el-input v-model="editForm.knowledgeName" :placeholder="$t('G2_PH_NAME', '请输入名称')" />
         </el-form-item>
-        <el-form-item label="知识键" prop="knowledgeKey">
-          <el-input v-model="editForm.knowledgeKey" placeholder="业务侧稳定标识" :disabled="isEdit" />
-          <div class="field-tip">用于对接检索与发布，创建后建议不要轻易修改</div>
+        <el-form-item :label="$t('KN_FIELD_KNOWLEDGE_KEY', '知识键')" prop="knowledgeKey">
+          <el-input v-model="editForm.knowledgeKey" :placeholder="$t('KN_PH_KNOWLEDGE_KEY', '请输入知识键')" :disabled="isEdit" />
+          <div class="field-tip">{{ $t('KN_ITEM_TIP_KEY', '用于对接检索与发布，创建后建议不要轻易修改') }}</div>
         </el-form-item>
-        <el-form-item label="分类" prop="categoryId">
-          <el-select v-model="editForm.categoryId" placeholder="选择分类" filterable style="width: 100%">
+        <el-form-item :label="$t('G2_FIELD_CATEGORY', '分类')" prop="categoryId">
+          <el-select v-model="editForm.categoryId" :placeholder="$t('G2_PH_CATEGORY', '请选择分类')" filterable style="width: 100%">
             <el-option v-for="c in categoryOptions" :key="c.id" :label="c.categoryName" :value="c.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="类型" prop="knowledgeType">
-          <el-select v-model="editForm.knowledgeType" placeholder="类型" style="width: 100%" :disabled="isEdit">
-            <el-option v-for="opt in typeOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
+        <el-form-item :label="$t('G2_FIELD_TYPE', '类型')" prop="knowledgeType">
+          <DictSelect v-model="editForm.knowledgeType" usage-code="KB_TYPE" :placeholder="$t('KN_PH_TYPE', '请选择类型')" width="100%" :disabled="isEdit" />
         </el-form-item>
-        <el-form-item label="状态" prop="status">
-          <el-select v-model="editForm.status" placeholder="启停状态" style="width: 100%">
-            <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
-          </el-select>
-          <div class="field-tip">停用不等同于下线或撤回线上版本，请按实际业务影响确认</div>
+        <el-form-item :label="$t('G2_FIELD_STATUS', '状态')" prop="status">
+          <DictSelect v-model="editForm.status" usage-code="ENABLE_STATUS" :placeholder="$t('G2_PH_STATUS', '请选择状态')" width="100%" />
+          <div class="field-tip">{{ $t('KN_ITEM_TIP_STATUS', '停用不等同于下线或撤回线上版本，请按实际业务影响确认') }}</div>
         </el-form-item>
-        <el-form-item label="标签">
+        <el-form-item :label="$t('G2_FIELD_TAG', '标签')">
           <el-select
             v-model="editForm.tagCodes"
             multiple
             filterable
             clearable
-            placeholder="选择标签"
+            :placeholder="$t('G2_FIELD_TAG', '标签')"
             style="width: 100%"
           >
             <el-option
@@ -166,16 +172,16 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="优先级" prop="priority">
+        <el-form-item :label="$t('KN_FIELD_PRIORITY', '优先级')" prop="priority">
           <el-input-number v-model="editForm.priority" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="说明" prop="description">
-          <el-input v-model="editForm.description" type="textarea" :rows="4" placeholder="说明" />
+        <el-form-item :label="$t('G2_FIELD_DESCRIPTION', '说明')" prop="description">
+          <el-input v-model="editForm.description" type="textarea" :rows="4" :placeholder="$t('G2_FIELD_DESCRIPTION', '说明')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="editDrawerVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitEdit">保存</el-button>
+        <el-button @click="editDrawerVisible = false">{{ $t('G2_BTN_CANCEL', '取消') }}</el-button>
+        <el-button type="primary" @click="submitEdit">{{ $t('G2_BTN_SAVE', '保存') }}</el-button>
       </template>
     </el-drawer>
 
@@ -189,21 +195,21 @@
 
     <el-drawer
       v-model="importDrawerVisible"
-      title="批量导入"
+      :title="$t('KN_ITEM_BTN_IMPORT', '批量导入')"
       :size="OVERLAY_SIZE.drawer"
       destroy-on-close
       :close-on-click-modal="false"
     >
       <el-tabs v-model="importTab">
-        <el-tab-pane label="主题 CSV" name="items">
+        <el-tab-pane :label="$t('KN_IMPORT_TAB_ITEMS', '主题 CSV')" name="items">
           <el-alert
             type="info"
             :closable="false"
             show-icon
-            title="第一步：创建 DOCUMENT 主题与空 FILE 草稿。CSV 列：knowledge_key, knowledge_name；可选 description、priority、tags、category_code（行级 tags/分类优先于表单）。已存在 key 跳过。"
+            :title="$t('KN_IMPORT_TIP_ITEMS', '第一步：创建 DOCUMENT 主题与空 FILE 草稿。CSV 列：knowledge_key, knowledge_name；可选 description、priority、tags、category_code（行级 tags/分类优先于表单）。已存在 key 跳过。')"
             style="margin-bottom: 12px"
           />
-          <el-button link type="primary" @click="downloadItemsTemplate">下载 CSV 模板</el-button>
+          <el-button link type="primary" @click="downloadItemsTemplate">{{ $t('KN_BTN_DL_CSV', '下载 CSV 模板') }}</el-button>
           <el-upload
             style="margin-top: 12px"
             :auto-upload="false"
@@ -212,15 +218,15 @@
             :on-change="onItemsFileChange"
             :on-remove="() => (importItemsFile = null)"
           >
-            <el-button>选择 CSV</el-button>
+            <el-button>{{ $t('KN_BTN_PICK_CSV', '选择 CSV') }}</el-button>
           </el-upload>
         </el-tab-pane>
-        <el-tab-pane label="文件挂接" name="files">
+        <el-tab-pane :label="$t('KN_IMPORT_TAB_FILES', '文件挂接')" name="files">
           <el-alert
             type="info"
             :closable="false"
             show-icon
-            title="第二步：须先主题 CSV。文件名（不含扩展名）= knowledge_key；挂接到已有主题的 FILE 草稿。主题不存在则失败。支持 PDF / Markdown / HTML。"
+            :title="$t('KN_IMPORT_TIP_FILES', '第二步：须先主题 CSV。文件名（不含扩展名）= knowledge_key；挂接到已有主题的 FILE 草稿。主题不存在则失败。支持 PDF / Markdown / HTML。')"
             style="margin-bottom: 12px"
           />
           <el-upload
@@ -230,18 +236,18 @@
             :on-change="onImportFilesChange"
             :on-remove="onImportFileRemove"
           >
-            <el-button>选择文件</el-button>
+            <el-button>{{ $t('G2_BTN_SELECT_FILE', '选择文件') }}</el-button>
           </el-upload>
         </el-tab-pane>
-        <el-tab-pane label="FAQ（CSV）" name="faq">
+        <el-tab-pane :label="$t('KN_IMPORT_TAB_FAQ', 'FAQ（CSV）')" name="faq">
           <el-alert
             type="info"
             :closable="false"
             show-icon
-            title="CSV 列：knowledge_key, knowledge_name, faq_question, faq_answer；可选 description、priority。标签/优先级写入主题；已存在 key 将跳过。"
+            :title="$t('KN_IMPORT_TIP_FAQ', 'CSV 列：knowledge_key, knowledge_name, faq_question, faq_answer；可选 description、priority。标签/优先级写入主题；已存在 key 将跳过。')"
             style="margin-bottom: 12px"
           />
-          <el-button link type="primary" @click="downloadFaqTemplate">下载 CSV 模板</el-button>
+          <el-button link type="primary" @click="downloadFaqTemplate">{{ $t('KN_BTN_DL_CSV', '下载 CSV 模板') }}</el-button>
           <el-upload
             style="margin-top: 12px"
             :auto-upload="false"
@@ -250,49 +256,48 @@
             :on-change="onFaqFileChange"
             :on-remove="() => (importFaqFile = null)"
           >
-            <el-button>选择 CSV</el-button>
+            <el-button>{{ $t('KN_BTN_PICK_CSV', '选择 CSV') }}</el-button>
           </el-upload>
         </el-tab-pane>
       </el-tabs>
 
       <el-form label-width="96px" style="margin-top: 16px">
-        <el-form-item v-if="importTab !== 'files'" label="分类">
-          <el-select v-model="importForm.categoryId" clearable filterable placeholder="可选" style="width: 100%">
+        <el-form-item v-if="importTab !== 'files'" :label="$t('G2_FIELD_CATEGORY', '分类')">
+          <el-select v-model="importForm.categoryId" clearable filterable :placeholder="$t('KN_PH_OPTIONAL', '可选')" style="width: 100%">
             <el-option v-for="c in categoryOptions" :key="c.id" :label="c.categoryName" :value="c.id" />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="importTab !== 'files'" label="标签">
+        <el-form-item v-if="importTab !== 'files'" :label="$t('G2_FIELD_TAG', '标签')">
           <el-select
             v-model="importForm.tags"
             multiple
             filterable
             clearable
-            placeholder="可选，写入本批新建主题"
+            :placeholder="$t('KN_PH_IMPORT_TAGS', '可选，写入本批新建主题')"
             style="width: 100%"
           >
             <el-option v-for="tag in tagOptions" :key="tag.tagCode" :label="tag.tagName" :value="tag.tagCode" />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="importTab !== 'items'" label="提交审核">
+        <el-form-item v-if="importTab !== 'items'" :label="$t('KN_BTN_SUBMIT_REVIEW', '提交审核')">
           <el-switch v-model="importForm.submitReview" />
-          <div class="field-tip">主题 CSV 仅建主题与空草稿；文件/FAQ 可开启提交审核</div>
+          <div class="field-tip">{{ $t('KN_IMPORT_TIP_REVIEW', '主题 CSV 仅建主题与空草稿；文件/FAQ 可开启提交审核') }}</div>
         </el-form-item>
       </el-form>
 
       <el-table v-if="importResult" :data="importResult.items" border stripe style="width: 100%; margin-top: 12px">
-        <el-table-column prop="knowledgeKey" label="知识键" min-width="140" show-overflow-tooltip />
-        <el-table-column prop="itemStatus" label="结果" width="100" />
-        <el-table-column prop="errorCode" label="错误码" width="140" show-overflow-tooltip />
-        <el-table-column prop="errorMessage" label="说明" min-width="160" show-overflow-tooltip />
+        <el-table-column prop="knowledgeKey" :label="$t('KN_FIELD_KNOWLEDGE_KEY', '知识键')" min-width="140" show-overflow-tooltip />
+        <el-table-column prop="itemStatus" :label="$t('G2_FIELD_RESULT', '结果')" width="100" />
+        <el-table-column prop="errorCode" :label="$t('G2_LBL_ERR_CODE', '错误码')" width="140" show-overflow-tooltip />
+        <el-table-column prop="errorMessage" :label="$t('G2_FIELD_DESCRIPTION', '说明')" min-width="160" show-overflow-tooltip />
       </el-table>
       <div v-if="importResult" class="field-tip" style="margin-top: 8px">
-        成功 {{ importResult.successCount }} / 跳过 {{ importResult.skippedCount }} / 失败
-        {{ importResult.failedCount }}
+        {{ $t('KN_IMPORT_RESULT', { ok: importResult.successCount, skip: importResult.skippedCount, fail: importResult.failedCount }, '成功 {ok} / 跳过 {skip} / 失败 {fail}') }}
       </div>
 
       <template #footer>
-        <el-button @click="importDrawerVisible = false">关闭</el-button>
-        <el-button type="primary" :loading="importSubmitting" @click="submitImport">开始导入</el-button>
+        <el-button @click="importDrawerVisible = false">{{ $t('G2_BTN_CLOSE', '关闭') }}</el-button>
+        <el-button type="primary" :loading="importSubmitting" @click="submitImport">{{ $t('KN_ITEM_BTN_IMPORT', '批量导入') }}</el-button>
       </template>
     </el-drawer>
   </div>
@@ -312,11 +317,10 @@ import type {
 } from './type';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
-import { OrganSelect } from '@g2rain/ui/platform';
+import { OrganSelect, DictSelect, DictText } from '@g2rain/ui/platform';
 import { compactQuery } from '@shared/knowledge/entity';
 import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
 import { OVERLAY_SIZE } from '@shared/knowledge/overlay';
-import { ITEM_STATUS_OPTIONS, KNOWLEDGE_TYPE_OPTIONS, resolveTypeLabel } from '@/views/knowledge_revision/status';
 import { KnowledgeCategoryApi } from '@/views/knowledge_category/api';
 import type { KnowledgeCategory } from '@/views/knowledge_category/type';
 import { KnowledgeTagApi } from '@/views/knowledge_tag/api';
@@ -329,11 +333,6 @@ import { showErrorMessage } from '@/components';
 
 const tokenStore = useAccessTokenStore();
 const isAdminCompany = computed(() => tokenStore.isAdminCompany);
-
-const statusOptions = ITEM_STATUS_OPTIONS;
-const typeOptions = KNOWLEDGE_TYPE_OPTIONS;
-const statusLabel = (s?: string) => statusOptions.find((o) => o.value === s)?.label || s || '-';
-const typeLabel = resolveTypeLabel;
 
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
@@ -436,11 +435,18 @@ const openVersions = (row: KnowledgeItem, create = false) => {
 
 const toggleVisibility = async (row: KnowledgeItem) => {
   const next = row.visibility === 'PUBLIC' ? 'PRIVATE' : 'PUBLIC';
-  const label = next === 'PUBLIC' ? '公共（跨机构可读）' : '本机构私有';
+  const label =
+    next === 'PUBLIC'
+      ? t('KN_VISIBILITY_PUBLIC', '公共（跨机构可读）')
+      : t('KN_VISIBILITY_PRIVATE', '本机构私有');
   try {
     await ElMessageBox.confirm(
-      `将「${row.knowledgeName}」的共享范围改为${label}？已发布内容仍须用新版本改正文。`,
-      '设置共享范围',
+      t(
+        'KN_ITEM_CONFIRM_VISIBILITY',
+        { name: row.knowledgeName, scope: label },
+        '将「{name}」的共享范围改为{scope}？已发布内容仍须用新版本改正文。',
+      ),
+      t('KN_ITEM_TITLE_VISIBILITY', '设置共享范围'),
       { type: 'warning' },
     );
   } catch {
@@ -448,10 +454,10 @@ const toggleVisibility = async (row: KnowledgeItem) => {
   }
   try {
     await KnowledgeItemApi.setVisibility(row.id, next, row.version);
-    ElMessage.success('共享范围已更新');
+    ElMessage.success(t('KN_ITEM_OK_VISIBILITY', '共享范围已更新'));
     await loadData();
   } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '更新共享范围失败');
+    showErrorMessage(error instanceof Error ? error.message : t('KN_ITEM_ERR_VISIBILITY', '更新共享范围失败'));
   }
 };
 
@@ -508,11 +514,11 @@ const editForm = reactive({
   tagCodes: [] as string[],
 });
 const editRules: FormRules = {
-  knowledgeName: [{ required: true, message: '请输入名称', trigger: 'blur' }],
-  knowledgeKey: [{ required: true, message: '请输入知识键', trigger: 'blur' }],
-  categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
-  knowledgeType: [{ required: true, message: '请选择类型', trigger: 'change' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }],
+  knowledgeName: [{ required: true, message: t('G2_PH_NAME', '请输入名称'), trigger: 'blur' }],
+  knowledgeKey: [{ required: true, message: t('KN_PH_KNOWLEDGE_KEY', '请输入知识键'), trigger: 'blur' }],
+  categoryId: [{ required: true, message: t('G2_PH_CATEGORY', '请选择分类'), trigger: 'change' }],
+  knowledgeType: [{ required: true, message: t('KN_PH_TYPE', '请选择类型'), trigger: 'change' }],
+  status: [{ required: true, message: t('G2_PH_STATUS', '请选择状态'), trigger: 'change' }],
 };
 
 const handleCreate = async () => {
@@ -660,7 +666,7 @@ const submitImport = async () => {
     let result: KnowledgeImportResult;
     if (importTab.value === 'items') {
       if (!importItemsFile.value) {
-        showErrorMessage('请先选择主题 CSV 文件');
+        showErrorMessage(t('KN_IMPORT_ERR_ITEMS_CSV', '请先选择主题 CSV 文件'));
         return;
       }
       result = await KnowledgeItemApi.importItems(importItemsFile.value, {
@@ -669,13 +675,13 @@ const submitImport = async () => {
       });
     } else if (importTab.value === 'faq') {
       if (!importFaqFile.value) {
-        showErrorMessage('请先选择 CSV 文件');
+        showErrorMessage(t('KN_IMPORT_ERR_CSV', '请先选择 CSV 文件'));
         return;
       }
       result = await KnowledgeItemApi.importFaq(importFaqFile.value, options);
     } else {
       if (!importFiles.value.length) {
-        showErrorMessage('请先选择要导入的文件');
+        showErrorMessage(t('KN_IMPORT_ERR_NO_FILE', '请先选择要导入的文件'));
         return;
       }
       result = await KnowledgeItemApi.importFiles(importFiles.value, {
@@ -684,13 +690,17 @@ const submitImport = async () => {
     }
     importResult.value = result;
     ElMessage.success(
-      `导入完成：成功 ${result.successCount}，跳过 ${result.skippedCount}，失败 ${result.failedCount}`,
+      t(
+        'KN_IMPORT_OK',
+        { ok: result.successCount, skip: result.skippedCount, fail: result.failedCount },
+        '导入完成：成功 {ok}，跳过 {skip}，失败 {fail}',
+      ),
     );
     if (result.successCount > 0) {
       await loadData();
     }
   } catch (error: unknown) {
-    showErrorMessage(error instanceof Error ? error.message : '批量导入失败');
+    showErrorMessage(error instanceof Error ? error.message : t('KN_IMPORT_ERR', '批量导入失败'));
   } finally {
     importSubmitting.value = false;
   }

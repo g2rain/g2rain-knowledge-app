@@ -1,8 +1,12 @@
 <template>
   <div class="migrated-page">
-    <el-result icon="info" title="版本管理入口已迁移" sub-title="请从「知识内容」打开版本管理抽屉。">
+    <el-result
+      icon="info"
+      :title="$t('KN_REVISION_MOVED_TITLE', '版本管理入口已迁移')"
+      :sub-title="$t('KN_REVISION_MOVED_SUB', '请从「知识内容」打开版本管理抽屉。')"
+    >
       <template #extra>
-        <el-button type="primary" @click="goItem">进入知识内容</el-button>
+        <el-button type="primary" @click="goItem">{{ $t('KN_BTN_GO_ITEM', '进入知识内容') }}</el-button>
       </template>
     </el-result>
   </div>

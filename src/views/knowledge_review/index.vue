@@ -2,20 +2,20 @@
   <div class="knowledge_review-page">
     <el-card class="knowledge_review-page__search" shadow="never">
       <QueryForm ref="queryFormRef" v-model="baseQueryForm" @search="handleSearch">
-        <el-form-item label="所属机构">
+        <el-form-item :label="$t('G2_FIELD_ORGAN', '所属机构')">
           <OrganSelect v-model="queryForm.organId" />
         </el-form-item>
-        <el-form-item label="知识名称">
-          <el-input v-model="queryForm.knowledgeName" placeholder="按主题名称筛选" clearable style="width: 200px" />
+        <el-form-item :label="$t('G2_FIELD_NAME', '名称')">
+          <el-input v-model="queryForm.knowledgeName" :placeholder="$t('G2_PH_NAME', '请输入名称')" clearable style="width: 200px" />
         </el-form-item>
-        <el-form-item label="版本号">
-          <el-input v-model="queryForm.revisionNo" placeholder="版本号" clearable style="width: 160px" />
+        <el-form-item :label="$t('G2_FIELD_VERSION', '版本号')">
+          <el-input v-model="queryForm.revisionNo" :placeholder="$t('G2_FIELD_VERSION', '版本号')" clearable style="width: 160px" />
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="queryForm.revisionStatus" placeholder="状态" clearable style="width: 160px">
-            <el-option label="待审核" value="REVIEWING" />
-            <el-option label="草稿" value="DRAFT" />
-            <el-option label="已通过" value="APPROVED" />
+        <el-form-item :label="$t('G2_FIELD_STATUS', '状态')">
+          <el-select v-model="queryForm.revisionStatus" :placeholder="$t('G2_PH_STATUS', '请选择状态')" clearable style="width: 160px">
+            <el-option :label="$t('KN_REV_STATUS_REVIEWING', '待审核')" value="REVIEWING" />
+            <el-option :label="$t('KN_REV_STATUS_DRAFT', '草稿')" value="DRAFT" />
+            <el-option :label="$t('KN_REV_STATUS_APPROVED', '已通过')" value="APPROVED" />
           </el-select>
         </el-form-item>
         <template #actions>
@@ -28,8 +28,8 @@
     </el-card>
 
     <div class="knowledge_review-page__header">
-      <h2>内容审核</h2>
-      <el-tag type="warning">默认待审核队列</el-tag>
+      <h2>{{ $t('KN_REVIEW_TITLE', '内容审核') }}</h2>
+      <el-tag type="warning">{{ $t('KN_REVIEW_TAG_DEFAULT', '默认待审核队列') }}</el-tag>
     </div>
 
     <div class="knowledge_review-page__body">
@@ -42,16 +42,16 @@
           height="100%"
           @current-change="onSelectRow"
         >
-          <el-table-column label="机构名称" min-width="120" show-overflow-tooltip>
+          <el-table-column :label="$t('G2_FIELD_ORGAN', '所属机构')" min-width="120" show-overflow-tooltip>
             <template #default="{ row }">{{ organName(row) }}</template>
           </el-table-column>
-          <el-table-column prop="knowledgeName" label="知识名称" min-width="140" show-overflow-tooltip />
-          <el-table-column prop="revisionNo" label="版本" width="100" />
-          <el-table-column prop="sourceType" label="类型" width="80">
+          <el-table-column prop="knowledgeName" :label="$t('G2_FIELD_NAME', '名称')" min-width="140" show-overflow-tooltip />
+          <el-table-column prop="revisionNo" :label="$t('G2_FIELD_VERSION', '版本号')" width="100" />
+          <el-table-column prop="sourceType" :label="$t('G2_FIELD_TYPE', '类型')" width="80">
             <template #default="{ row }">{{ typeLabel(row.sourceType) }}</template>
           </el-table-column>
-          <el-table-column prop="itemPriority" label="优先级" width="80" />
-          <el-table-column prop="updateTime" label="更新时间" width="160" />
+          <el-table-column prop="itemPriority" :label="$t('KN_FIELD_PRIORITY', '优先级')" width="80" />
+          <el-table-column prop="updateTime" :label="$t('G2_FIELD_UPDATE_TIME', '更新时间')" width="160" />
         </el-table>
         <el-empty v-if="!loading && !tableData.length" :description="emptyText" :image-size="80" />
         <div class="knowledge_review-page__pagination">
@@ -79,45 +79,45 @@
                 v-permission="'knowledge_revision:download-source'"
                 @click="downloadSource"
               >
-                下载原文
+                {{ $t('KN_BTN_DOWNLOAD_SOURCE', '下载原文') }}
               </el-button>
               <el-button
                 type="danger"
                 v-permission="'knowledge_revision:review-reject'"
                 @click="rejectReview"
               >
-                驳回
+                {{ $t('KN_BTN_REJECT', '驳回') }}
               </el-button>
               <el-button
                 type="primary"
                 v-permission="'knowledge_revision:review-approve'"
                 @click="approveReview"
               >
-                通过
+                {{ $t('KN_BTN_APPROVE', '通过') }}
               </el-button>
             </div>
           </div>
           <el-descriptions :column="1" border class="detail-descriptions">
-            <el-descriptions-item label="机构名称">{{ organName(current) }}</el-descriptions-item>
-            <el-descriptions-item label="类型">{{ typeLabel(current.sourceType) }}</el-descriptions-item>
-            <el-descriptions-item label="优先级">{{ current.itemPriority ?? 0 }}</el-descriptions-item>
-            <el-descriptions-item label="标签">{{ formatTags(current.itemTagsJson) }}</el-descriptions-item>
-            <el-descriptions-item v-if="current.sourceType === 'FAQ'" label="标准问题">
+            <el-descriptions-item :label="$t('G2_FIELD_ORGAN', '所属机构')">{{ organName(current) }}</el-descriptions-item>
+            <el-descriptions-item :label="$t('G2_FIELD_TYPE', '类型')">{{ typeLabel(current.sourceType) }}</el-descriptions-item>
+            <el-descriptions-item :label="$t('KN_FIELD_PRIORITY', '优先级')">{{ current.itemPriority ?? 0 }}</el-descriptions-item>
+            <el-descriptions-item :label="$t('G2_FIELD_TAG', '标签')">{{ formatTags(current.itemTagsJson) }}</el-descriptions-item>
+            <el-descriptions-item v-if="current.sourceType === 'FAQ'" :label="$t('KN_FIELD_FAQ_Q', '标准问题')">
               {{ current.faqQuestion }}
             </el-descriptions-item>
-            <el-descriptions-item v-if="current.sourceType === 'FAQ'" label="标准答案">
+            <el-descriptions-item v-if="current.sourceType === 'FAQ'" :label="$t('KN_FIELD_FAQ_A', '标准答案')">
               <pre class="block-text">{{ current.faqAnswer }}</pre>
             </el-descriptions-item>
-            <el-descriptions-item v-else label="源文件">
+            <el-descriptions-item v-else :label="$t('KN_FIELD_SOURCE_FILE', '源文件')">
               <div class="source-file" :title="current.sourceFileName || ''">
-                {{ current.sourceFileName || '未上传' }}
+                {{ current.sourceFileName || $t('KN_MSG_NO_FILE', '未上传') }}
               </div>
-              <div class="field-tip">文件请下载后在本地查看；下载成功不等于审核完成</div>
+              <div class="field-tip">{{ $t('KN_REVIEW_TIP_FILE', '文件请下载后在本地查看；下载成功不等于审核完成') }}</div>
             </el-descriptions-item>
-            <el-descriptions-item label="审核意见">{{ current.reviewComment || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="$t('KN_FIELD_REVIEW_COMMENT', '审核意见')">{{ current.reviewComment || '-' }}</el-descriptions-item>
           </el-descriptions>
         </template>
-        <el-empty v-else description="请选择左侧待审内容" :image-size="80" />
+        <el-empty v-else :description="$t('KN_REVIEW_EMPTY_DETAIL', '请选择左侧待审内容')" :image-size="80" />
       </div>
     </div>
   </div>
@@ -126,6 +126,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { t } from '@platform/i18n';
 import { QueryForm } from '@g2rain/ui';
 import { OrganSelect } from '@g2rain/ui/platform';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
@@ -164,8 +165,8 @@ const itemNameMap = ref<Record<number, string>>({});
 const itemMetaMap = ref<Record<number, { priority: number; tagsJson?: string }>>({});
 
 const emptyText = computed(() => {
-  if (queryForm.revisionStatus === 'REVIEWING') return '暂无待审核内容，可切换其他状态查看';
-  return '暂无数据';
+  if (queryForm.revisionStatus === 'REVIEWING') return t('KN_REVIEW_EMPTY_QUEUE', '暂无待审核内容，可切换其他状态查看');
+  return t('G2_EMPTY_DATA', '暂无数据');
 });
 
 const parseTagCodes = (tagsJson?: string): string[] => {
@@ -310,12 +311,16 @@ const approveReview = async () => {
   if (!current.value) return;
   try {
     const latest = await KnowledgeRevisionApi.getById(current.value.id);
-    await ElMessageBox.confirm(`确认通过版本「${latest.revisionNo}」？`, '审核通过', { type: 'warning' });
+    await ElMessageBox.confirm(
+      t('KN_REVIEW_CONFIRM_APPROVE', { no: latest.revisionNo }, '确认通过版本「{no}」？'),
+      t('KN_REVIEW_TITLE_APPROVE', '审核通过'),
+      { type: 'warning' },
+    );
     await KnowledgeRevisionApi.approveReview({
       revisionId: latest.id,
       expectedVersion: latest.version,
     });
-    ElMessage.success('审核已通过，等待处理。下一站：知识处理');
+    ElMessage.success(t('KN_REVIEW_OK_APPROVE', '审核已通过，等待处理。下一站：知识处理'));
     current.value = null;
     await loadData();
   } catch {
@@ -326,20 +331,24 @@ const approveReview = async () => {
 const rejectReview = async () => {
   if (!current.value) return;
   try {
-    const { value } = await ElMessageBox.prompt('请填写驳回意见（必填）', '审核驳回', {
-      inputType: 'textarea',
-      inputValidator: (v) => (!!v && !!v.trim()) || '驳回意见必填',
-      confirmButtonText: '驳回',
-      cancelButtonText: '取消',
-      type: 'warning',
-    });
+    const { value } = await ElMessageBox.prompt(
+      t('KN_REVIEW_PROMPT_REJECT', '请填写驳回意见（必填）'),
+      t('KN_REVIEW_TITLE_REJECT', '审核驳回'),
+      {
+        inputType: 'textarea',
+        inputValidator: (v) => (!!v && !!v.trim()) || t('KN_REVIEW_REJECT_REQUIRED', '驳回意见必填'),
+        confirmButtonText: t('KN_BTN_REJECT', '驳回'),
+        cancelButtonText: t('G2_BTN_CANCEL', '取消'),
+        type: 'warning',
+      },
+    );
     const latest = await KnowledgeRevisionApi.getById(current.value.id);
     await KnowledgeRevisionApi.rejectReview({
       revisionId: latest.id,
       expectedVersion: latest.version,
       comment: value.trim(),
     });
-    ElMessage.success('已驳回，内容返回草稿。可在知识内容中继续修改');
+    ElMessage.success(t('KN_REVIEW_OK_REJECT', '已驳回，内容返回草稿。可在知识内容中继续修改'));
     current.value = null;
     await loadData();
   } catch {
@@ -368,10 +377,12 @@ onMounted(async () => {
   flex-direction: column;
 }
 .knowledge_review-page__search {
+  flex-shrink: 0;
   margin-bottom: 12px;
   background-color: var(--g2-bg-container);
 }
 .knowledge_review-page__header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -387,7 +398,7 @@ onMounted(async () => {
 }
 .knowledge_review-page__body {
   flex: 1;
-  min-height: 420px;
+  min-height: 0;
   display: grid;
   grid-template-columns: minmax(360px, 1.1fr) minmax(360px, 1fr);
   gap: 12px;
