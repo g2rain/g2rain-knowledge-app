@@ -130,7 +130,7 @@ import { OrganSelect } from '@g2rain/ui/platform';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { showErrorMessage } from '@/components';
 import { compactQuery } from '@shared/knowledge/entity';
-import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
+import { organName } from '@shared/knowledge/organ-name';
 import { OVERLAY_SIZE, POLL_INTERVAL_MS } from '@shared/knowledge/overlay';
 import { KnowledgeTaskApi } from './api';
 import type { KnowledgeTask } from './type';
@@ -286,7 +286,6 @@ const loadPending = async () => {
 
   tableData.value = rows;
   pagination.total = knowledgeName.trim() ? rows.length : pageData.total;
-  await ensureOrganNames(rows);
 };
 
 const loadTasks = async () => {
@@ -317,7 +316,6 @@ const loadTasks = async () => {
   const clientFiltered =
     Boolean(queryForm.knowledgeName.trim()) || Boolean(queryForm.revisionNo.trim());
   pagination.total = clientFiltered ? filtered.length : pageData.total;
-  await ensureOrganNames(filtered);
 };
 
 const loadData = async () => {
