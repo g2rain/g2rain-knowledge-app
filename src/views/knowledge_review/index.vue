@@ -131,7 +131,7 @@ import { QueryForm } from '@g2rain/ui';
 import { OrganSelect } from '@g2rain/ui/platform';
 import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.type';
 import { compactQuery } from '@shared/knowledge/entity';
-import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
+import { organName } from '@shared/knowledge/organ-name';
 import { KnowledgeRevisionApi } from '@/views/knowledge_revision/api';
 import type { KnowledgeRevision, KnowledgeRevisionQuery } from '@/views/knowledge_revision/type';
 import { KnowledgeItemApi } from '@/views/knowledge_item/api';
@@ -234,7 +234,6 @@ const loadData = async () => {
 
     tableData.value = rows;
     pagination.total = knowledgeName.trim() ? rows.length : pageData.total;
-    await ensureOrganNames(rows);
     if (current.value) {
       const still = rows.find((r) => r.id === current.value?.id);
       current.value = still || null;

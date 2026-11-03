@@ -163,7 +163,7 @@ import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.t
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
 import { OrganSelect, DictSelect, DictText } from '@g2rain/ui/platform';
 import { compactQuery } from '@shared/knowledge/entity';
-import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
+import { organName } from '@shared/knowledge/organ-name';
 
 const queryFormRef = ref<InstanceType<typeof QueryForm> | null>(null);
 const baseQueryForm = ref<BaseSelectListDto>({});
@@ -186,7 +186,6 @@ const loadData = async () => {
     } as PageSelectListDto & KnowledgeAnswerTemplateQuery);
     tableData.value = pageData.records;
     pagination.total = pageData.total;
-    await ensureOrganNames(pageData.records);
   } catch {
     // 请求失败已由 http 层统一提示
   }

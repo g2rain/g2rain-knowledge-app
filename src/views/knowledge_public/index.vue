@@ -78,7 +78,7 @@
 import { onMounted, ref } from 'vue';
 import { KnowledgePublicApi } from './api';
 import type { KnowledgePublicCategory, KnowledgePublicItem } from './type';
-import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
+import { organName } from '@shared/knowledge/organ-name';
 
 const loading = ref(false);
 const keyword = ref('');
@@ -99,7 +99,6 @@ const categoryLabel = (categoryId?: number) =>
 
 const loadCategories = async () => {
   categories.value = await KnowledgePublicApi.categories();
-  await ensureOrganNames(categories.value);
 };
 
 const loadPage = async () => {
@@ -113,7 +112,6 @@ const loadPage = async () => {
     });
     rows.value = page?.records || [];
     total.value = Number(page?.total || 0);
-    await ensureOrganNames(rows.value);
   } finally {
     loading.value = false;
   }
@@ -127,7 +125,6 @@ const onCategorySelect = (index: string) => {
 
 const openDetail = async (row: KnowledgePublicItem) => {
   detail.value = await KnowledgePublicApi.detail(row.knowledgeId);
-  if (detail.value) await ensureOrganNames([detail.value]);
   detailOpen.value = true;
 };
 
