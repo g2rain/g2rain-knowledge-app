@@ -319,7 +319,7 @@ import type { BaseSelectListDto, PageSelectListDto } from '@platform/types/api.t
 import { SortableTable, TableColumn, SortManagerButton, QueryForm } from '@g2rain/ui';
 import { OrganSelect, DictSelect, DictText } from '@g2rain/ui/platform';
 import { compactQuery } from '@shared/knowledge/entity';
-import { ensureOrganNames, organName } from '@shared/knowledge/organ-name';
+import { organName } from '@shared/knowledge/organ-name';
 import { OVERLAY_SIZE } from '@shared/knowledge/overlay';
 import { KnowledgeCategoryApi } from '@/views/knowledge_category/api';
 import type { KnowledgeCategory } from '@/views/knowledge_category/type';
@@ -388,7 +388,6 @@ const loadData = async () => {
     } as PageSelectListDto & KnowledgeItemQuery);
     tableData.value = pageData.records;
     pagination.total = pageData.total;
-    await ensureOrganNames(pageData.records);
     await loadActiveRevisions(pageData.records);
   } catch {
     // 请求失败已由 http 层统一提示

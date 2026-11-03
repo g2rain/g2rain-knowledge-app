@@ -67,7 +67,7 @@
           </el-collapse-item>
         </el-collapse>
 
-        <el-form-item>
+        <el-form-item class="knowledge_search-page__actions">
           <el-button
             v-if="isAnswerMode"
             type="primary"
@@ -274,6 +274,9 @@ onMounted(async () => {
 .knowledge_search-page__result {
   margin-top: 12px;
   background-color: var(--g2-bg-container);
+}
+.knowledge_search-page__actions {
+  margin-top: 18px;
 }
 .field-tip {
   margin-top: 4px;
